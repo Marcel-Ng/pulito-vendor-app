@@ -1,9 +1,18 @@
-import { useAuth } from "@/src/lib/AuthContext";
 import { Redirect, Stack } from "expo-router";
+import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 export default function ProtectedLayout() {
-  const { isLoggedIn, isLoading, logIn } = useAuth();
+  console.log("ProtectedLayout rendered");
+  // const { isLoggedIn, isLoading, logIn } = useAuth();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate loading state
+  setTimeout(() => {
+    setIsLoggedIn(true);
+    setIsLoading(false);
+  }, 1000);
 
   if (isLoading) {
     return (
@@ -14,13 +23,13 @@ export default function ProtectedLayout() {
   }
 
   if (!isLoggedIn) {
-    return <Redirect href={"/"} />;
+    return <Redirect href={"/auth/login"} />;
   }
 
   return (
     <>
       <Stack>
-        <Stack.Screen name="(tab)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
     </>
   );

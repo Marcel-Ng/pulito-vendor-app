@@ -5,25 +5,45 @@ export default function BottomTabsLayout() {
   return (
     <Tabs>
       <Tabs.Screen
-        name="(explore)"
+        name="(orders)"
         options={{
-          title: "Explore",
-          headerShown: false,
-          tabBarLabel: "Explore",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="magnify" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="orders"
-        options={{
-          title: "order",
+          title: "Orders",
           headerShown: false,
           tabBarLabel: "Orders",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
-              name="clipboard-minus-outline"
+              name="clipboard-list-outline"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="services"
+        options={{
+          title: "Services",
+          headerShown: false,
+          tabBarLabel: "Services",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="view-grid-outline"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="payouts"
+        options={{
+          title: "Payouts",
+          headerShown: false,
+          tabBarLabel: "Payouts",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="receipt-outline"
               size={size}
               color={color}
             />
@@ -34,7 +54,7 @@ export default function BottomTabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "order",
+          title: "Profile",
           headerShown: false,
           tabBarLabel: "Profile",
           tabBarIcon: ({ color, size }) => (
