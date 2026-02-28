@@ -219,6 +219,192 @@ export const Icon = ({
         </Text>
       </View>
     ),
+    store: (
+      <View
+        style={{
+          width: size,
+          height: size,
+          alignItems: "center",
+          justifyContent: "flex-end",
+        }}
+      >
+        <View
+          style={{
+            width: size,
+            height: size * 0.65,
+            borderWidth: 2,
+            borderColor: color,
+            borderRadius: 3,
+          }}
+        />
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            width: size * 0.45,
+            height: size * 0.45,
+            borderWidth: 2,
+            borderColor: color,
+            borderRadius: 3,
+          }}
+        />
+      </View>
+    ),
+    operation: (
+      <View
+        style={{
+          width: size,
+          height: size,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <View
+          style={{
+            width: size * 0.85,
+            height: size * 0.85,
+            borderWidth: 2,
+            borderColor: color,
+            borderRadius: size * 0.43,
+          }}
+        />
+        <View
+          style={{
+            position: "absolute",
+            width: 5,
+            height: 5,
+            borderRadius: 2.5,
+            backgroundColor: color,
+          }}
+        />
+        {[0, 60, 120, 180, 240, 300].map((deg, i) => (
+          <View
+            key={i}
+            style={{
+              position: "absolute",
+              width: 2.5,
+              height: 2.5,
+              borderRadius: 1.5,
+              backgroundColor: color,
+              transform: [{ rotate: `${deg}deg` }, { translateY: -size * 0.3 }],
+            }}
+          />
+        ))}
+      </View>
+    ),
+    bank: (
+      <View
+        style={{
+          width: size,
+          height: size,
+          alignItems: "center",
+          justifyContent: "flex-end",
+        }}
+      >
+        <View
+          style={{
+            width: size,
+            height: 3,
+            backgroundColor: color,
+            borderRadius: 1,
+            marginBottom: 1,
+          }}
+        />
+        <View style={{ flexDirection: "row", gap: 3, marginBottom: 1 }}>
+          {[0, 1, 2].map((i) => (
+            <View
+              key={i}
+              style={{
+                width: 4,
+                height: size * 0.45,
+                backgroundColor: color,
+                borderRadius: 1,
+              }}
+            />
+          ))}
+        </View>
+        <View
+          style={{
+            width: size * 0.75,
+            height: 3,
+            backgroundColor: color,
+            borderRadius: 1,
+            marginBottom: 1,
+          }}
+        />
+        <View
+          style={{
+            width: size * 0.4,
+            height: 3,
+            backgroundColor: color,
+            borderRadius: 1,
+          }}
+        />
+      </View>
+    ),
+    star: (
+      <View
+        style={{
+          width: size,
+          height: size,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Text style={{ fontSize: size, color, lineHeight: size + 2 }}>★</Text>
+      </View>
+    ),
+    person: (
+      <MaterialCommunityIcons
+        name="account-outline"
+        size={size}
+        color={color}
+      />
+    ),
+    lock: (
+      <View
+        style={{
+          width: size,
+          height: size,
+          alignItems: "center",
+          justifyContent: "flex-end",
+        }}
+      >
+        <View
+          style={{
+            width: size * 0.7,
+            height: size * 0.5,
+            borderWidth: 2,
+            borderColor: color,
+            borderRadius: 4,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <View
+            style={{
+              width: 4,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: color,
+            }}
+          />
+        </View>
+        <View
+          style={{
+            position: "absolute",
+            top: 2,
+            width: size * 0.45,
+            height: size * 0.4,
+            borderTopLeftRadius: size * 0.25,
+            borderTopRightRadius: size * 0.25,
+            borderWidth: 2,
+            borderColor: color,
+            borderBottomWidth: 0,
+          }}
+        />
+      </View>
+    ),
     eye: <MaterialCommunityIcons name="eye" size={size} color={color} />,
     eyeClose: (
       <MaterialCommunityIcons name="eye-off" size={size} color={color} />
