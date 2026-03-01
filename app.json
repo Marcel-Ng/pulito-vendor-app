@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "pulito-vendor-app",
+    "name": "Pulito Vendor",
     "slug": "pulito-vendor-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,7 +14,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.chidimarcel.pulitovendorapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -35,6 +39,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "440ae340-b943-422b-b7cf-77de46aee156"
+      }
     }
   }
 }

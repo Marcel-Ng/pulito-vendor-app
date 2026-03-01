@@ -10,6 +10,7 @@ import {
 } from "react-native";
 
 import { Icon } from "@/src/component/shared";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // ─── Simple inline icons (swap with @expo/vector-icons if preferred) ──────────
@@ -101,13 +102,23 @@ export default function ProfileScreen() {
         {/* Business Section */}
         <Text style={styles.sectionTitle}>Business</Text>
         <View style={styles.section}>
-          <MenuRow icon="store" label="Business Profile" onPress={() => {}} />
+          <MenuRow
+            icon="store"
+            label="Business Profile"
+            onPress={() => router.navigate("/profile/business-profile")}
+          />
           <MenuRow
             icon="operation"
             label="Business Operation"
-            onPress={() => {}}
+            onPress={() => {
+              router.navigate("/profile/business-operation");
+            }}
           />
-          <MenuRow icon="bank" label="Bank Settings" onPress={() => {}} />
+          <MenuRow
+            icon="bank"
+            label="Bank Settings"
+            onPress={() => router.navigate("/profile/bank-settings")}
+          />
           <MenuRow
             icon="star"
             label="Reviews"

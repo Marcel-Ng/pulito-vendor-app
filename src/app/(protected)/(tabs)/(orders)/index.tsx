@@ -1,5 +1,6 @@
 import { OrderCard, OrderCardProps } from "@/src/component/orders";
 import { Icon } from "@/src/component/shared";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   ScrollView,
@@ -17,7 +18,13 @@ export default function HomeScreen() {
   const [balanceVisible, setBalanceVisible] = useState(true);
 
   const orderCategories: OrderCardProps[] = [
-    { icon: "orders", label: "New Orders" },
+    {
+      icon: "orders",
+      label: "New Orders",
+      onPress: () => {
+        router.navigate("/(protected)/(tabs)/(orders)/order-list");
+      },
+    },
     { icon: "pickup", label: "Out for pickup" },
     { icon: "ongoing", label: "Ongoing" },
     { icon: "ready", label: "Ready" },

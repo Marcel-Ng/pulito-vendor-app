@@ -3,7 +3,6 @@ import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 export default function ProtectedLayout() {
-  console.log("ProtectedLayout rendered");
   // const { isLoggedIn, isLoading, logIn } = useAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
