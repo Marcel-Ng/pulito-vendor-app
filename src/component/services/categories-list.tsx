@@ -1,5 +1,7 @@
 // ─── Screen 1: Category List ──────────────────────────────────────────────────
 
+import { GREEN } from "@/constants/Colors";
+import { ServiceItem } from "@/src/types/service.types";
 import {
   FlatList,
   StatusBar,
@@ -12,12 +14,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // --- types
-interface ServiceItem {
-  id: string;
-  category: string;
-  name: string;
-  amount: string;
-}
 
 const SERVICE_CATEGORIES = [
   "Wash & Iron",
@@ -27,10 +23,6 @@ const SERVICE_CATEGORIES = [
   "Steam Press",
   "Stain Removal",
 ];
-
-const GREEN = "#3B5E3A";
-const GREEN_LIGHT = "#EDF3EC";
-const GREEN_MID = "#C8DEC7";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

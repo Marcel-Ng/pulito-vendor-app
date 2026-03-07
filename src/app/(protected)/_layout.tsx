@@ -1,3 +1,4 @@
+import { ServicesProvider } from "@/src/lib/context/services-context";
 import { Redirect, Stack } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
@@ -26,10 +27,10 @@ export default function ProtectedLayout() {
   }
 
   return (
-    <>
+    <ServicesProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
-    </>
+    </ServicesProvider>
   );
 }

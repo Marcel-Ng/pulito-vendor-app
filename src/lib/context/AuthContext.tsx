@@ -9,7 +9,7 @@ import {
 // import { authService } from "../services/authService";
 import { router } from "expo-router";
 import Toast from "react-native-toast-message";
-import { authService } from "./services/auth-service";
+import { authService } from "../services/auth-service";
 
 type User = { id: string; name: string; email: string };
 
@@ -57,10 +57,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
       );
 
       setUser(data.result.userDetails);
-      router.replace("/(protected)/tabs/orders");
+      router.replace("/(protected)/(tabs)/(orders)");
     } catch (error: any) {
       const message = error.response?.data?.message || "Login failed";
-      console.log("fkfkjfjkfjfjjf");
       (console.log(error + "\n" + error.response),
         Toast.show({
           type: "error",
