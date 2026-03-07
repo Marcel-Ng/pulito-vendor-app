@@ -1,6 +1,7 @@
 // ─── Screen 1: Category List ──────────────────────────────────────────────────
 
 import { GREEN } from "@/constants/Colors";
+import { SERVICE_CATEGORIES } from "@/constants/service-categories";
 import { ServiceItem } from "@/src/types/service.types";
 import {
   FlatList,
@@ -12,17 +13,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// --- types
-
-const SERVICE_CATEGORIES = [
-  "Wash & Iron",
-  "Dry Clean",
-  "Iron Only",
-  "Wash Only",
-  "Steam Press",
-  "Stain Removal",
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

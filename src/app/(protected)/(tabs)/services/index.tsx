@@ -24,18 +24,11 @@ const INITIAL_ITEMS: ServiceItem[] = [
   { id: "2", category: "Wash & Iron", name: "Trousers", amount: "450" },
   { id: "3", category: "Wash & Iron", name: "T-Shirts", amount: "300" },
   { id: "4", category: "Wash & Iron", name: "Dresses", amount: "500" },
-  { id: "5", category: "Dry Clean", name: "Shirts", amount: "700" },
-  { id: "6", category: "Dry Clean", name: "Trousers", amount: "800" },
-  { id: "7", category: "Dry Clean", name: "T-Shirts", amount: "600" },
-  { id: "8", category: "Dry Clean", name: "Jackets", amount: "1200" },
-  { id: "9", category: "Dry Clean", name: "Suits", amount: "2000" },
   { id: "10", category: "Iron Only", name: "Dress", amount: "250" },
   { id: "11", category: "Iron Only", name: "Shirts", amount: "200" },
   { id: "12", category: "Steam Press", name: "Suits", amount: "1500" },
   { id: "13", category: "Steam Press", name: "Blazers", amount: "1000" },
 ];
-
-// ─── Root App ─────────────────────────────────────────────────────────────────
 
 export default function ServicesScreen() {
   const [items, setItems] = useState<ServiceItem[]>(INITIAL_ITEMS);

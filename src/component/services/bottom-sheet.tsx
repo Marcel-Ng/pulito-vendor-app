@@ -1,6 +1,7 @@
 // ─── Bottom Sheet ─────────────────────────────────────────────────────────────
 
 import { GREEN } from "@/constants/Colors";
+import { SERVICE_CATEGORIES } from "@/constants/service-categories";
 import { ModalMode, ServiceItem } from "@/src/types/service.types";
 import { useEffect, useState } from "react";
 import {
@@ -16,15 +17,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Dropdown } from "./drop-down";
-
-const SERVICE_CATEGORIES = [
-  "Wash & Iron",
-  "Dry Clean",
-  "Iron Only",
-  "Wash Only",
-  "Steam Press",
-  "Stain Removal",
-];
 
 export function ItemBottomSheet({
   visible,
