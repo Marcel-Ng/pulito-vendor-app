@@ -1,7 +1,10 @@
 // ─── Bottom Sheet ─────────────────────────────────────────────────────────────
 
 import { GREEN } from "@/constants/Colors";
-import { SERVICE_CATEGORIES } from "@/constants/service-categories";
+import {
+  CARWASH_SERVICE_CATEGORIES,
+  LAUNDRY_SERVICE_CATEGORIES,
+} from "@/constants/service-categories";
 import { ModalMode, ServiceItem } from "@/src/types/service.types";
 import { useEffect, useState } from "react";
 import {
@@ -19,6 +22,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Dropdown } from "./drop-down";
 
 export function ItemBottomSheet({
+  vendorType,
   visible,
   mode,
   initialData,
@@ -27,6 +31,7 @@ export function ItemBottomSheet({
   onSubmit,
   onReject,
 }: {
+  vendorType: "Car Wash" | "Laundry";
   visible: boolean;
   mode: ModalMode;
   initialData?: ServiceItem;
@@ -86,7 +91,11 @@ export function ItemBottomSheet({
               <Dropdown
                 value={category}
                 placeholder="Select Service"
-                options={SERVICE_CATEGORIES}
+                options={
+                  vendorType === "Car Wash"
+                    ? CARWASH_SERVICE_CATEGORIES
+                    : LAUNDRY_SERVICE_CATEGORIES
+                }
                 onSelect={setCategory}
               />
 

@@ -206,7 +206,7 @@ export default function ProfileScreen() {
               </View>
               <View style={styles.vendorRowInfo}>
                 <Text style={styles.vendorRowName}>{vendor.name}</Text>
-                <Text style={styles.vendorRowRole}>{vendor.role}</Text>
+                <Text style={styles.vendorRowRole}>{vendor.vendorType}</Text>
               </View>
               {activeVendor.id === vendor.id && (
                 <MaterialCommunityIcons

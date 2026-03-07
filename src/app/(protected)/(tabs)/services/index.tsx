@@ -3,8 +3,9 @@ import {
   CategoryItemsScreen,
   ItemBottomSheet,
 } from "@/src/component/services";
+import { useVendor } from "@/src/lib/context/vendor-context";
 import { ModalMode, ServiceItem } from "@/src/types/service.types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Platform, StyleSheet, UIManager } from "react-native";
 
 if (
@@ -17,28 +18,23 @@ if (
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Screen = "categories" | "items";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const INITIAL_ITEMS: ServiceItem[] = [
-  { id: "1", category: "Wash & Iron", name: "Shirts", amount: "400" },
-  { id: "2", category: "Wash & Iron", name: "Trousers", amount: "450" },
-  { id: "3", category: "Wash & Iron", name: "T-Shirts", amount: "300" },
-  { id: "4", category: "Wash & Iron", name: "Dresses", amount: "500" },
-  { id: "10", category: "Iron Only", name: "Dress", amount: "250" },
-  { id: "11", category: "Iron Only", name: "Shirts", amount: "200" },
-  { id: "12", category: "Steam Press", name: "Suits", amount: "1500" },
-  { id: "13", category: "Steam Press", name: "Blazers", amount: "1000" },
-];
-
 export default function ServicesScreen() {
-  const [items, setItems] = useState<ServiceItem[]>(INITIAL_ITEMS);
+  const [items, setItems] = useState<ServiceItem[]>([]);
   const [screen, setScreen] = useState<Screen>("categories");
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [search, setSearch] = useState("");
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [editTarget, setEditTarget] = useState<ServiceItem | undefined>();
+  const { vendors, activeVendor, setActiveVendor } = useVendor();
 
-  const categoryItems = items.filter((i) => i.category === activeCategory);
+  const categoryItems =
+    items?.filter((i) => i.category === activeCategory) ?? [];
+
+  useEffect(() => {
+    if (activeVendor?.items) {
+      setItems(activeVendor.items);
+    }
+  }, [activeVendor]); // Now it only runs when the vendor switches
 
   const handleSelectCategory = (cat: string) => {
     setActiveCategory(cat);
@@ -86,6 +82,7 @@ export default function ServicesScreen() {
     <>
       {screen === "categories" ? (
         <CategoriesList
+          vendorType={activeVendor.vendorType}
           items={items}
           search={search}
           onSearchChange={setSearch}
@@ -106,6 +103,7 @@ export default function ServicesScreen() {
       )}
 
       <ItemBottomSheet
+        vendorType={activeVendor.vendorType}
         visible={modalMode !== null}
         mode={modalMode}
         initialData={modalMode === "edit" ? editTarget : undefined}

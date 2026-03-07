@@ -1,14 +1,16 @@
 // ─── Screen 1: Category List ──────────────────────────────────────────────────
 
 import { GREEN } from "@/constants/Colors";
-import { SERVICE_CATEGORIES } from "@/constants/service-categories";
+import {
+  CARWASH_SERVICE_CATEGORIES,
+  LAUNDRY_SERVICE_CATEGORIES,
+} from "@/constants/service-categories";
 import { ServiceItem } from "@/src/types/service.types";
 import {
   FlatList,
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -26,12 +28,14 @@ function groupByCategory(items: ServiceItem[]) {
 }
 
 export default function CategoriesList({
+  vendorType,
   items,
   search,
   onSearchChange,
   onOpenCreate,
   onSelectCategory,
 }: {
+  vendorType: "Car Wash" | "Laundry";
   items: ServiceItem[];
   search: string;
   onSearchChange: (v: string) => void;
@@ -41,7 +45,15 @@ export default function CategoriesList({
   const grouped = groupByCategory(items);
 
   // Build list of categories that have items OR are in the master list
-  const allCategories = SERVICE_CATEGORIES.filter(
+  const carWashCategories = CARWASH_SERVICE_CATEGORIES.filter(
+    (cat) =>
+      cat.toLowerCase().includes(search.toLowerCase()) ||
+      (grouped.get(cat) ?? []).some((i) =>
+        i.name.toLowerCase().includes(search.toLowerCase()),
+      ),
+  );
+
+  const laundryCategories = LAUNDRY_SERVICE_CATEGORIES.filter(
     (cat) =>
       cat.toLowerCase().includes(search.toLowerCase()) ||
       (grouped.get(cat) ?? []).some((i) =>
@@ -65,7 +77,7 @@ export default function CategoriesList({
       </View>
 
       {/* Search */}
-      <View style={styles.searchContainer}>
+      {/* <View style={styles.searchContainer}>
         <Text style={styles.searchIconText}>🔍</Text>
         <TextInput
           style={styles.searchInput}
@@ -81,11 +93,11 @@ export default function CategoriesList({
             </Text>
           </TouchableOpacity>
         )}
-      </View>
+      </View> */}
 
       {/* Category Cards */}
       <FlatList
-        data={allCategories}
+        data={vendorType === "Car Wash" ? carWashCategories : laundryCategories}
         keyExtractor={(c) => c}
         contentContainerStyle={{
           paddingHorizontal: 16,
