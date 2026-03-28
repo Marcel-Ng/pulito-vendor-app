@@ -31,7 +31,7 @@ export default function Auth() {
               style={styles.button}
               onPress={() => {
                 // router.navigate("/auth/login");
-                router.navigate("/login");
+                router.navigate("/auth/login");
               }}
             >
               <Text style={styles.Btntext}>Login</Text>

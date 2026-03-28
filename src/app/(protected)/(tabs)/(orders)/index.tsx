@@ -21,16 +21,52 @@ export default function HomeScreen() {
     {
       icon: "orders",
       label: "New Orders",
-      onPress: () => {
-        router.navigate("/(protected)/(tabs)/(orders)/order-list");
-      },
+      badge: 0,
+      onPress: () => navigateToOrdersList("new"),
     },
-    { icon: "pickup", label: "Out for pickup" },
-    { icon: "ongoing", label: "Ongoing" },
-    { icon: "ready", label: "Ready" },
-    { icon: "delivery", label: "Out for delivery" },
-    { icon: "completed", label: "Completed" },
+    {
+      icon: "pickup",
+      label: "Out for pickup",
+      badge: 0,
+
+      onPress: () => navigateToOrdersList("pickup"),
+    },
+    {
+      icon: "ongoing",
+      label: "Ongoing",
+      badge: 0,
+
+      onPress: () => navigateToOrdersList("ongoing"),
+    },
+    {
+      icon: "ready",
+      label: "Ready",
+      badge: 0,
+
+      onPress: () => navigateToOrdersList("ready"),
+    },
+    {
+      icon: "delivery",
+      label: "Out for delivery",
+      badge: 0,
+
+      onPress: () => navigateToOrdersList("delivery"),
+    },
+    {
+      icon: "completed",
+      label: "Completed",
+      badge: 7,
+
+      onPress: () => navigateToOrdersList("completed"),
+    },
   ];
+
+  function navigateToOrdersList(status: string) {
+    router.navigate({
+      pathname: "/(protected)/(tabs)/(orders)/order-list",
+      params: { status },
+    });
+  }
 
   return (
     <SafeAreaView style={styles.safe}>

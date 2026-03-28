@@ -134,7 +134,6 @@ function LoginScreen() {
           <View style={styles.socialContainer}>
             <TouchableOpacity style={styles.socialButton}>
               <Image
-                // source={require("../../assets/images/apple-logo.png")} // Replace with your local asset
                 source={require("@/src/assets/images/apple-logo.png")}
                 style={styles.socialLogo}
                 resizeMode="contain"

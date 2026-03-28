@@ -1,3 +1,4 @@
+import { useAuth } from "@/src/lib/context/AuthContext";
 import { ServicesProvider } from "@/src/lib/context/services-context";
 import { VendorProvider } from "@/src/lib/context/vendor-context";
 import { Redirect, Stack } from "expo-router";
@@ -5,15 +6,9 @@ import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 export default function ProtectedLayout() {
-  // const { isLoggedIn, isLoading, logIn } = useAuth();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Simulate loading state
-  setTimeout(() => {
-    setIsLoggedIn(true);
-    setIsLoading(false);
-  }, 1000);
+  const { isLoggedIn } = useAuth();
+  // const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (isLoading) {
     return (

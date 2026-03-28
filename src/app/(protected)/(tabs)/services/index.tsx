@@ -34,7 +34,7 @@ export default function ServicesScreen() {
     if (activeVendor?.items) {
       setItems(activeVendor.items);
     }
-  }, [activeVendor]); // Now it only runs when the vendor switches
+  }, [activeVendor]);
 
   const handleSelectCategory = (cat: string) => {
     setActiveCategory(cat);
@@ -122,6 +122,4 @@ export default function ServicesScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#FFFFFF" },
-
-  // Modal / Sheet
 });

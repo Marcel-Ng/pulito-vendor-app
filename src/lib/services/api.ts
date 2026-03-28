@@ -1,8 +1,15 @@
 import axios from "axios";
 
+export type ApiResponse<T> = {
+  statusCode: number;
+  success: boolean;
+  message?: string;
+  data: T;
+};
+
 const api = axios.create({
-  baseURL: "https://pulito-api-v01.onrender.com/",
-  timeout: 10000,
+  baseURL: "https://pulito-api-v01.onrender.com",
+  timeout: 50000,
   headers: {
     "Content-Type": "application/json",
   },

@@ -1,5 +1,6 @@
+import { EmptyOrders } from "@/src/component/orders";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
@@ -19,62 +20,95 @@ type Order = {
   totalPrice: number;
 };
 
-const MOCK_ORDERS: Order[] = [
-  {
-    id: "1",
-    orderNumber: "1210393783",
-    pickupDate: "Nov 24 | 11:30",
-    deliveryDate: "Nov 27 | 12:30",
-    itemCount: 12,
-    totalPrice: 12000,
-  },
-  {
-    id: "2",
-    orderNumber: "1210393783",
-    pickupDate: "Nov 24 | 11:30",
-    deliveryDate: "Nov 27 | 12:30",
-    itemCount: 12,
-    totalPrice: 12000,
-  },
-  {
-    id: "3",
-    orderNumber: "1210393783",
-    pickupDate: "Nov 24 | 11:30",
-    deliveryDate: "Nov 27 | 12:30",
-    itemCount: 12,
-    totalPrice: 12000,
-  },
-  {
-    id: "4",
-    orderNumber: "1210393783",
-    pickupDate: "Nov 24 | 11:30",
-    deliveryDate: "Nov 27 | 12:30",
-    itemCount: 12,
-    totalPrice: 12000,
-  },
-];
+type OrderList = {
+  newOrders: Order[];
+  pickupOrders: Order[];
+  ongoingOrders: Order[];
+  readyOrders: Order[];
+  deliveryOrders: Order[];
+  completedOrders: Order[];
+};
 
-export default function NewOrderScreen() {
+// ✅ Explicit status type
+type OrderStatus =
+  | "new"
+  | "pickup"
+  | "ongoing"
+  | "ready"
+  | "delivery"
+  | "completed";
+
+const MOCK_ORDERS: OrderList = {
+  newOrders: [],
+  pickupOrders: [],
+  ongoingOrders: [],
+  readyOrders: [],
+  deliveryOrders: [],
+  completedOrders: [
+    {
+      id: "1",
+      orderNumber: "1210393783",
+      pickupDate: "Nov 24 | 11:30",
+      deliveryDate: "Nov 27 | 12:30",
+      itemCount: 12,
+      totalPrice: 12000,
+    },
+  ],
+};
+
+export default function OrderListScreen() {
   const router = useRouter();
-  const [orders, setOrders] = useState<Order[]>(MOCK_ORDERS);
+  const { status } = useLocalSearchParams();
+
+  const [orders] = useState<OrderList>(MOCK_ORDERS);
+
+  // ✅ Normalize status safely
+  const VALID_STATUSES: OrderStatus[] = [
+    "new",
+    "pickup",
+    "ongoing",
+    "ready",
+    "delivery",
+    "completed",
+  ];
+
+  const safeStatus: OrderStatus =
+    typeof status === "string" && VALID_STATUSES.includes(status as OrderStatus)
+      ? (status as OrderStatus)
+      : "new";
+
+  // ✅ Map status → actual data
+  const orderMap: Record<OrderStatus, Order[]> = {
+    new: orders.newOrders,
+    pickup: orders.pickupOrders,
+    ongoing: orders.ongoingOrders,
+    ready: orders.readyOrders,
+    delivery: orders.deliveryOrders,
+    completed: orders.completedOrders,
+  };
+
+  const currentOrders = orderMap[safeStatus];
+
+  // ✅ Title map
+  const titleMap: Record<OrderStatus, string> = {
+    new: "New Orders",
+    pickup: "Out for Pickup",
+    ongoing: "Ongoing",
+    ready: "Ready",
+    delivery: "Out for Delivery",
+    completed: "Completed",
+  };
+
+  const screenTitle = titleMap[safeStatus];
 
   const handleAccept = (id: string) => {
-    Alert.alert("Order Accepted", "You have accepted this order.", [
-      {
-        text: "OK",
-        onPress: () => setOrders((prev) => prev.filter((o) => o.id !== id)),
-      },
-    ]);
+    Alert.alert("Order Accepted", "You have accepted this order.");
   };
 
   const handleReject = (id: string) => {
-    Alert.alert("Reject Order", "Are you sure you want to reject this order?", [
+    Alert.alert("Reject Order", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
-      {
-        text: "Reject",
-        style: "destructive",
-        onPress: () => setOrders((prev) => prev.filter((o) => o.id !== id)),
-      },
+      { text: "Reject", style: "destructive" },
     ]);
   };
 
@@ -89,21 +123,21 @@ export default function NewOrderScreen() {
           >
             <Ionicons name="arrow-back" size={22} color="#111" />
           </TouchableOpacity>
-          <Text style={styles.title}>New Order</Text>
+          <Text style={styles.title}>{screenTitle}</Text>
         </View>
 
-        {orders.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="receipt-outline" size={48} color="#ccc" />
-            <Text style={styles.emptyText}>No new orders</Text>
-          </View>
+        {/* Empty State */}
+        {currentOrders.length === 0 ? (
+          <EmptyOrders
+            message={`No ${screenTitle.toLowerCase()} at the moment`}
+          />
         ) : (
-          orders.map((order) => (
+          currentOrders.map((order) => (
             <View key={order.id} style={styles.card}>
               <TouchableOpacity
-                onPress={() => {
-                  router.navigate("/(protected)/(tabs)/(orders)/order-details");
-                }}
+                onPress={() =>
+                  router.navigate("/(protected)/(tabs)/(orders)/order-details")
+                }
               >
                 <Text style={styles.orderNumber}>
                   Order {order.orderNumber}
@@ -130,21 +164,23 @@ export default function NewOrderScreen() {
                 <View style={styles.divider} />
               </TouchableOpacity>
 
-              {/* Actions */}
-              <View style={styles.actions}>
-                <TouchableOpacity
-                  style={styles.rejectBtn}
-                  onPress={() => handleReject(order.id)}
-                >
-                  <Text style={styles.rejectText}>Reject</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.acceptBtn}
-                  onPress={() => handleAccept(order.id)}
-                >
-                  <Text style={styles.acceptText}>Accept</Text>
-                </TouchableOpacity>
-              </View>
+              {/* Actions (only for new orders) */}
+              {safeStatus === "new" && (
+                <View style={styles.actions}>
+                  <TouchableOpacity
+                    style={styles.rejectBtn}
+                    onPress={() => handleReject(order.id)}
+                  >
+                    <Text style={styles.rejectText}>Reject</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.acceptBtn}
+                    onPress={() => handleAccept(order.id)}
+                  >
+                    <Text style={styles.acceptText}>Accept</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           ))
         )}
@@ -156,6 +192,7 @@ export default function NewOrderScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   content: { padding: 20, paddingTop: 60, gap: 16 },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -178,6 +215,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+
   orderNumber: {
     fontSize: 15,
     fontWeight: "600",
@@ -186,8 +224,13 @@ const styles = StyleSheet.create({
   },
 
   // Date row
-  dateRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+  dateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
   dateText: { fontSize: 14, color: "#888" },
+
   dashedLine: {
     flex: 1,
     height: 1,
@@ -206,17 +249,30 @@ const styles = StyleSheet.create({
   itemCount: { fontSize: 14, color: "#888" },
   price: { fontSize: 16, fontWeight: "700", color: "#111" },
 
-  divider: { height: 1, backgroundColor: "#f0f0f0", marginVertical: 16 },
+  divider: {
+    height: 1,
+    backgroundColor: "#f0f0f0",
+    marginVertical: 16,
+  },
 
   // Actions
-  actions: { flexDirection: "row", alignItems: "center", gap: 12 },
-  rejectBtn: { paddingVertical: 4, paddingHorizontal: 8 },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+
+  rejectBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
   rejectText: {
     fontSize: 15,
     fontWeight: "600",
     color: "#8B0000",
     textDecorationLine: "underline",
   },
+
   acceptBtn: {
     flex: 1,
     backgroundColor: "#3B6B44",
@@ -224,15 +280,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
   },
-  acceptText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-
-  // Empty
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 120,
-    gap: 12,
+  acceptText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
-  emptyText: { fontSize: 16, color: "#aaa" },
 });

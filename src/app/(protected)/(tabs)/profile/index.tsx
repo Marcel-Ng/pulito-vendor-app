@@ -12,7 +12,9 @@ import {
 } from "react-native";
 
 import { Icon } from "@/src/component/shared";
-import { useVendor, Vendor } from "@/src/lib/context/vendor-context";
+import { useAuth } from "@/src/lib/context/AuthContext";
+import { useVendor } from "@/src/lib/context/vendor-context";
+import { Vendor } from "@/src/types/vendor.types";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -75,6 +77,8 @@ const MenuRow = ({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 export default function ProfileScreen() {
   const { vendors, activeVendor, setActiveVendor } = useVendor();
+  const { logOut } = useAuth();
+
   const [switcherVisible, setSwitcherVisible] = useState(false);
 
   const handleLogout = () => {
@@ -83,7 +87,9 @@ export default function ProfileScreen() {
       {
         text: "Logout",
         style: "destructive",
-        onPress: () => console.log("Logged out"),
+        onPress: () => {
+          logOut();
+        },
       },
     ]);
   };

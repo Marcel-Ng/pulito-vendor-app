@@ -1,3 +1,4 @@
+import EmptyOrders from "./empty-order";
 import { OrderCard, OrderCardProps } from "./order-card";
 
-export { OrderCard, OrderCardProps };
+export { EmptyOrders, OrderCard, OrderCardProps };

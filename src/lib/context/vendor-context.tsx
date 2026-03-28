@@ -1,24 +1,8 @@
-import { ServiceItem } from "@/src/types/service.types";
-import React, { createContext, useContext, useState } from "react";
+import { vendorService } from "@/src/lib/services/vendor.service";
+import { BusinessProfile, Vendor } from "@/src/types/vendor.types";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-export type BusinessProfile = {
-  businessName: string;
-  phone: string;
-  email: string;
-  address: string;
-};
-
-export type Vendor = {
-  id: number;
-  name: string;
-  avatarBg: string;
-  avatarEmoji: string;
-  vendorType: "Car Wash" | "Laundry";
-  profile: BusinessProfile;
-  items: ServiceItem[];
-};
 
 type VendorContextType = {
   vendors: Vendor[];
@@ -97,6 +81,46 @@ const VendorContext = createContext<VendorContextType | null>(null);
 export function VendorProvider({ children }: { children: React.ReactNode }) {
   const [vendors, setVendors] = useState<Vendor[]>(INITIAL_VENDORS);
   const [activeVendor, setActiveVendor] = useState<Vendor>(INITIAL_VENDORS[0]);
+
+  // ─── 🔥 MAP API → UI ─────────────────────────────────────────────
+  const mapApiToVendor = (v: any): Vendor => ({
+    id: v.id,
+    name: v.name,
+    avatarBg: v.avatarBg || "#3B82F6",
+    avatarEmoji: v.avatarEmoji || "🏪",
+    vendorType: v.vendorType || "Laundry",
+
+    profile: {
+      businessName: v.businessName,
+      phone: v.phone,
+      email: v.email,
+      address: v.address,
+    },
+
+    items: v.items || [],
+  });
+
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        const data = await vendorService.getVendorsByUser();
+
+        console.log("API vendors:", data);
+
+        const mapped = data.map(mapApiToVendor);
+
+        setVendors(mapped);
+
+        if (mapped.length > 0) {
+          setActiveVendor(mapped[0]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch vendors:", err);
+      }
+    };
+
+    fetchVendors();
+  }, []);
 
   const updateBusinessProfile = (data: Partial<BusinessProfile>) => {
     // Update both the vendors list and the activeVendor in sync

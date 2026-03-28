@@ -47,25 +47,26 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const logIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const data = await authService.login(email, password);
-
+      const response = await authService.login(email, password);
       // Persist the data
-      await SecureStore.setItemAsync("user_token", data.result.accessToken);
+      console.log(response.data);
+      await SecureStore.setItemAsync("user_token", response.data.accessToken);
       await SecureStore.setItemAsync(
         "user_data",
-        JSON.stringify(data.result.userDetails),
+        JSON.stringify(response.data.user),
       );
 
-      setUser(data.result.userDetails);
+      setUser(response.data.user);
       router.replace("/(protected)/(tabs)/(orders)");
     } catch (error: any) {
       const message = error.response?.data?.message || "Login failed";
-      (console.log(error + "\n" + error.response),
-        Toast.show({
-          type: "error",
-          text1: "Login Error",
-          text2: message,
-        }));
+      console.log(error + "\n" + error.response);
+
+      Toast.show({
+        type: "error",
+        text1: "Login Error",
+        text2: message,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -75,6 +76,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     await SecureStore.deleteItemAsync("user_token");
     await SecureStore.deleteItemAsync("user_data");
     setUser(null);
+    router.replace("/auth/login");
   };
 
   return (
