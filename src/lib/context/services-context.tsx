@@ -9,6 +9,7 @@ import React, {
   useReducer,
 } from "react";
 import { vendorServicesService } from "../services/services-service";
+import { useVendor } from "./vendor-context";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -124,27 +125,29 @@ const ServicesContext = createContext<ServicesContextValue | null>(null);
 
 export function ServicesProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const { activeVendor } = useVendor(); // 👈 get active vendor
+  const vendorId = activeVendor?.id;
 
   // ── GET /vendor/service-items ─────────────────────────────────────────────
-
   const fetchItems = useCallback(async () => {
+    if (!vendorId) return; // 👈 guard
     dispatch({ type: "FETCH_START" });
     try {
-      const data = await vendorServicesService.getAll();
+      const data = await vendorServicesService.getAll(vendorId);
       dispatch({ type: "FETCH_SUCCESS", payload: data });
     } catch (err) {
       dispatch({ type: "FETCH_ERROR", payload: extractError(err) });
     }
-  }, []);
+  }, [vendorId]); // 👈 re-fetch when vendor switches
 
   // ── POST /vendor/service-items ────────────────────────────────────────────
-
   const createItem = useCallback(
     async (input: ServiceItemInput): Promise<ServiceItem | null> => {
+      if (!vendorId) return null;
       const key = "create";
       dispatch({ type: "MUTATE_START", key });
       try {
-        const data = await vendorServicesService.create(input);
+        const data = await vendorServicesService.create(vendorId, input);
         dispatch({ type: "ITEM_CREATED", payload: data });
         return data;
       } catch (err) {
@@ -154,20 +157,20 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "MUTATE_END", key });
       }
     },
-    [],
+    [vendorId],
   );
 
   // ── PUT /vendor/service-items/:id ─────────────────────────────────────────
-
   const updateItem = useCallback(
     async (
       id: string,
       input: ServiceItemInput,
     ): Promise<ServiceItem | null> => {
+      if (!vendorId) return null;
       const key = `update:${id}`;
       dispatch({ type: "MUTATE_START", key });
       try {
-        const data = await vendorServicesService.update(id, input);
+        const data = await vendorServicesService.update(vendorId, id, input);
         dispatch({ type: "ITEM_UPDATED", payload: data });
         return data;
       } catch (err) {
@@ -177,25 +180,29 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "MUTATE_END", key });
       }
     },
-    [],
+    [vendorId],
   );
 
   // ── DELETE /vendor/service-items/:id ──────────────────────────────────────
 
-  const deleteItem = useCallback(async (id: string): Promise<boolean> => {
-    const key = `delete:${id}`;
-    dispatch({ type: "MUTATE_START", key });
-    try {
-      await vendorServicesService.remove(id);
-      dispatch({ type: "ITEM_DELETED", id });
-      return true;
-    } catch (err) {
-      dispatch({ type: "FETCH_ERROR", payload: extractError(err) });
-      return false;
-    } finally {
-      dispatch({ type: "MUTATE_END", key });
-    }
-  }, []);
+  const deleteItem = useCallback(
+    async (id: string): Promise<boolean> => {
+      if (!vendorId) return false;
+      const key = `delete:${id}`;
+      dispatch({ type: "MUTATE_START", key });
+      try {
+        await vendorServicesService.remove(vendorId, id);
+        dispatch({ type: "ITEM_DELETED", id });
+        return true;
+      } catch (err) {
+        dispatch({ type: "FETCH_ERROR", payload: extractError(err) });
+        return false;
+      } finally {
+        dispatch({ type: "MUTATE_END", key });
+      }
+    },
+    [vendorId],
+  );
 
   // ── Derived state ─────────────────────────────────────────────────────────
 

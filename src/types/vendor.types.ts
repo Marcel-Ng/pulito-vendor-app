@@ -7,7 +7,7 @@ export type BusinessProfile = {
 };
 
 export type Vendor = {
-  id: number;
+  id: string;
   name: string;
   avatarBg: string;
   avatarEmoji: string;

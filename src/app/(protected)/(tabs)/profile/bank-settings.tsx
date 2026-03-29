@@ -1,7 +1,10 @@
+import { useVendor } from "@/src/lib/context/vendor-context";
+import { bankAccountService } from "@/src/lib/services/bank-account.service";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Modal,
   Platform,
   ScrollView,
@@ -11,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+// import { Platform, StyleSheet, Text, TouchableOpacity } from "react-native";
 
 const BANKS = [
   "Access Bank",
@@ -33,23 +37,58 @@ type BankAccount = {
 
 export default function BankSettingsScreen() {
   const router = useRouter();
+  const { activeVendor } = useVendor();
+  const vendorId = activeVendor?.id;
+
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [bankDropdownOpen, setBankDropdownOpen] = useState(false);
   const [selectedBank, setSelectedBank] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
 
-  const canSave = selectedBank && accountNumber.length >= 10;
+  const canSave = selectedBank && accountNumber.length >= 10 && !saving;
 
-  const handleSave = () => {
+  if (!vendorId) {
+    return (
+      <ActivityIndicator style={{ flex: 1 }} size="large" color="#3B6B44" />
+    );
+  }
+
+  // Fetch on mount
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const res = await bankAccountService.getBankAccounts(vendorId);
+        setAccounts(res.data);
+      } catch (err) {
+        console.error("Failed to fetch bank accounts", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAccounts();
+  }, [vendorId]);
+
+  if (!activeVendor) return <ActivityIndicator style={{ flex: 1 }} />;
+
+  const handleSave = async () => {
     if (!canSave) return;
-    setAccounts((prev) => [
-      ...prev,
-      { id: Date.now().toString(), bankName: selectedBank, accountNumber },
-    ]);
-    setSelectedBank("");
-    setAccountNumber("");
-    setModalVisible(false);
+    setSaving(true);
+    try {
+      const res = await bankAccountService.addBankAccount(vendorId, {
+        bankName: selectedBank,
+        accountNumber,
+      });
+      setAccounts((prev) => [...prev, res.data]);
+      handleClose();
+    } catch (err) {
+      console.error("Failed to add bank account", err);
+      // show a toast/alert here
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleClose = () => {
@@ -58,6 +97,8 @@ export default function BankSettingsScreen() {
     setBankDropdownOpen(false);
     setModalVisible(false);
   };
+
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
 
   return (
     <View style={styles.container}>
@@ -206,6 +247,19 @@ export default function BankSettingsScreen() {
       </Modal>
     </View>
   );
+
+  // rest of the JSX stays the same, just update the Save button:
+  // <TouchableOpacity
+  //   style={[styles.saveBtn, canSave && !saving && styles.saveBtnActive]}
+  //   onPress={handleSave}
+  //   disabled={saving}
+  // >
+  //   {saving ? (
+  //     <ActivityIndicator color="#fff" />
+  //   ) : (
+  //     <Text style={styles.saveBtnText}>Save</Text>
+  //   )}
+  // </TouchableOpacity>;
 }
 
 const styles = StyleSheet.create({

@@ -1,4 +1,5 @@
 import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 
 export type ApiResponse<T> = {
   statusCode: number;
@@ -9,14 +10,18 @@ export type ApiResponse<T> = {
 
 const api = axios.create({
   baseURL: "https://pulito-api-v01.onrender.com",
-  timeout: 50000,
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 // Log request details
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
+  const token = await SecureStore.getItemAsync("user_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   const fullUrl = `${config.baseURL}${config.url}`;
   console.log(`🚀 AXIOS REQUEST: [${config.method?.toUpperCase()}] ${fullUrl}`);
   return config;

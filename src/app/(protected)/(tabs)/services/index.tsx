@@ -6,7 +6,12 @@ import {
 import { useVendor } from "@/src/lib/context/vendor-context";
 import { ModalMode, ServiceItem } from "@/src/types/service.types";
 import { useEffect, useState } from "react";
-import { Platform, StyleSheet, UIManager } from "react-native";
+import {
+  ActivityIndicator,
+  Platform,
+  StyleSheet,
+  UIManager,
+} from "react-native";
 
 if (
   Platform.OS === "android" &&
@@ -77,6 +82,8 @@ export default function ServicesScreen() {
     }
     setModalMode("create");
   };
+
+  if (!activeVendor) return <ActivityIndicator style={{ flex: 1 }} />;
 
   return (
     <>
