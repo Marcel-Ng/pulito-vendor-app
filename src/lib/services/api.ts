@@ -24,6 +24,7 @@ api.interceptors.request.use(async (config) => {
   }
   const fullUrl = `${config.baseURL}${config.url}`;
   console.log(`🚀 AXIOS REQUEST: [${config.method?.toUpperCase()}] ${fullUrl}`);
+  console.log("payload:", config.data);
   return config;
 });
 
@@ -34,11 +35,13 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    const response = error.response?.data;
     console.log(`❌ AXIOS ERROR:`, {
       url: error.config?.url,
-      code: error.code, // e.g., 'ECONNABORTED'
-      message: error.message,
-      status: error.response?.status, // e.g., 401, 404, 500
+      code: error.code, //
+      message: response?.message || error.message,
+      status: response?.statusCode || error.response?.status,
+      data: response?.data,
     });
     return Promise.reject(error);
   },

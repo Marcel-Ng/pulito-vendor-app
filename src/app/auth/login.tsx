@@ -116,8 +116,14 @@ function LoginScreen() {
             <Text style={styles.errorText}>{loginFormError.password}</Text>
           ) : null}
 
-          <TouchableOpacity style={styles.forgotLink}>
-            <Text style={styles.forgotText}>Forgot Password?</Text>
+          <TouchableOpacity
+            style={styles.forgotLink}
+            onPress={() => {
+              console.log("navigate to forgot password");
+              router.push("/auth/forgot-password");
+            }}
+          >
+            <Text style={styles.forgotText}>Forgot Password??</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
