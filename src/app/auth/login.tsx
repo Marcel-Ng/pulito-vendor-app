@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 function LoginScreen() {
   const { isLoggedIn, isLoading, logIn } = useAuth();
@@ -136,8 +137,8 @@ function LoginScreen() {
 
           <Text style={styles.orText}>Or</Text>
 
-          {/* Social Buttons */}
-          <View style={styles.socialContainer}>
+          {/* Social Buttons Add back social login when needed */}
+          {/* <View style={styles.socialContainer}>
             <TouchableOpacity style={styles.socialButton}>
               <Image
                 source={require("@/src/assets/images/apple-logo.png")}
@@ -154,20 +155,24 @@ function LoginScreen() {
               }}
             >
               <Image
-                source={require("@/src/assets/images/google-logo.png")} // Replace with your local asset
+                source={require("@/src/assets/images/google-logo.png")} 
                 style={styles.socialLogo}
                 resizeMode="contain"
               />
               <Text style={styles.socialText}>Google</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           {/* Sign Up */}
           <View style={styles.signupContainer}>
             <Text style={styles.signupPrefix}>Don't have an account? </Text>
             <TouchableOpacity
               onPress={() => {
-                console.log("navigate to signup");
+                Toast.show({
+                  type: "info",
+                  text1: "To register",
+                  text2: "send an email to support@getpulito.com",
+                });
               }}
             >
               <Text style={styles.signupText}>Sign up</Text>

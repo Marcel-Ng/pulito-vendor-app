@@ -1,7 +1,12 @@
-import { SafeAreaView } from "react-native-safe-area-context";
-
-import React, { useState } from "react";
+import { useVendor } from "@/src/lib/context/vendor-context";
 import {
+  PayoutResponse,
+  payoutService,
+} from "@/src/lib/services/payout-service";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
   FlatList,
   Modal,
   StatusBar,
@@ -10,115 +15,28 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-type PayoutStatus = "PENDING" | "PAID";
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-type Payout = {
-  id: string;
-  reference: string;
-  date: string; // display string
-  timestamp: number; // unix ms for sorting
-  amountRaw: number; // raw number for sorting
-  amount: string; // formatted display string
-  status: PayoutStatus;
-};
+function formatNGN(amount: number): string {
+  return `NGN ${amount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}`;
+}
 
-const PAYOUTS: Payout[] = [
-  {
-    id: "1",
-    reference: "#110122311",
-    date: "Wed, 23 November 2024",
-    timestamp: new Date("2024-11-23").getTime(),
-    amountRaw: 30000,
-    amount: "NGN 30,000.00",
-    status: "PENDING",
-  },
-  {
-    id: "2",
-    reference: "#110122312",
-    date: "Thu, 14 November 2024",
-    timestamp: new Date("2024-11-14").getTime(),
-    amountRaw: 230000,
-    amount: "NGN 230,000.00",
-    status: "PAID",
-  },
-  {
-    id: "3",
-    reference: "#110122313",
-    date: "Mon, 04 November 2024",
-    timestamp: new Date("2024-11-04").getTime(),
-    amountRaw: 175000,
-    amount: "NGN 175,000.00",
-    status: "PAID",
-  },
-  {
-    id: "4",
-    reference: "#110122314",
-    date: "Fri, 25 October 2024",
-    timestamp: new Date("2024-10-25").getTime(),
-    amountRaw: 95000,
-    amount: "NGN 95,000.00",
-    status: "PAID",
-  },
-  {
-    id: "5",
-    reference: "#110122315",
-    date: "Tue, 15 October 2024",
-    timestamp: new Date("2024-10-15").getTime(),
-    amountRaw: 310000,
-    amount: "NGN 310,000.00",
-    status: "PAID",
-  },
-  {
-    id: "6",
-    reference: "#110122316",
-    date: "Wed, 02 October 2024",
-    timestamp: new Date("2024-10-02").getTime(),
-    amountRaw: 50000,
-    amount: "NGN 50,000.00",
-    status: "PAID",
-  },
-  {
-    id: "7",
-    reference: "#110122317",
-    date: "Sat, 21 September 2024",
-    timestamp: new Date("2024-09-21").getTime(),
-    amountRaw: 420000,
-    amount: "NGN 420,000.00",
-    status: "PAID",
-  },
-  {
-    id: "8",
-    reference: "#110122318",
-    date: "Mon, 09 September 2024",
-    timestamp: new Date("2024-09-09").getTime(),
-    amountRaw: 120000,
-    amount: "NGN 120,000.00",
-    status: "PAID",
-  },
-];
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-NG", {
+    weekday: "short",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 type SortOption =
   | "Newest First"
   | "Oldest First"
   | "Amount (High–Low)"
   | "Amount (Low–High)";
-
-function sortPayouts(data: Payout[], option: SortOption): Payout[] {
-  const copy = [...data];
-  switch (option) {
-    case "Newest First":
-      return copy.sort((a, b) => b.timestamp - a.timestamp);
-    case "Oldest First":
-      return copy.sort((a, b) => a.timestamp - b.timestamp);
-    case "Amount (High–Low)":
-      return copy.sort((a, b) => b.amountRaw - a.amountRaw);
-    case "Amount (Low–High)":
-      return copy.sort((a, b) => a.amountRaw - b.amountRaw);
-    default:
-      return copy;
-  }
-}
 
 const SORT_OPTIONS: SortOption[] = [
   "Newest First",
@@ -127,30 +45,92 @@ const SORT_OPTIONS: SortOption[] = [
   "Amount (Low–High)",
 ];
 
-const StatusBadge = ({ status }: { status: PayoutStatus }) => (
+function sortPayouts(
+  data: PayoutResponse[],
+  option: SortOption,
+): PayoutResponse[] {
+  const copy = [...data];
+  switch (option) {
+    case "Newest First":
+      return copy.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+    case "Oldest First":
+      return copy.sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      );
+    case "Amount (High–Low)":
+      return copy.sort((a, b) => b.amount - a.amount);
+    case "Amount (Low–High)":
+      return copy.sort((a, b) => a.amount - b.amount);
+    default:
+      return copy;
+  }
+}
+
+// ── Components ────────────────────────────────────────────────────────────────
+
+const StatusBadge = ({ status }: { status: string }) => (
   <Text style={status === "PAID" ? styles.statusPaid : styles.statusPending}>
     {status}
   </Text>
 );
 
-const PayoutItem = ({ item, isLast }: { item: Payout; isLast: boolean }) => (
+const PayoutItem = ({
+  item,
+  isLast,
+}: {
+  item: PayoutResponse;
+  isLast: boolean;
+}) => (
   <View style={[styles.row, !isLast && styles.rowBorder]}>
     <View style={styles.rowLeft}>
       <Text style={styles.reference}>{item.reference}</Text>
-      <Text style={styles.date}>{item.date}</Text>
+      <Text style={styles.date}>{formatDate(item.createdAt)}</Text>
     </View>
     <View style={styles.rowRight}>
       <StatusBadge status={item.status} />
-      <Text style={styles.amount}>{item.amount}</Text>
+      <Text style={styles.amount}>{formatNGN(item.amount)}</Text>
     </View>
   </View>
 );
 
+// ── Screen ────────────────────────────────────────────────────────────────────
+
 export default function PayoutsScreen() {
+  const router = useRouter();
+  const { activeVendor } = useVendor();
+  const vendorId = activeVendor?.id ?? "";
+
+  const [payouts, setPayouts] = useState<PayoutResponse[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sortVisible, setSortVisible] = useState(false);
   const [selectedSort, setSelectedSort] = useState<SortOption>("Newest First");
 
-  const sortedPayouts = sortPayouts(PAYOUTS, selectedSort);
+  // Refetch every time screen comes into focus (e.g. after requesting a payout)
+  useFocusEffect(
+    useCallback(() => {
+      const fetch = async () => {
+        if (!vendorId) return;
+        setLoading(true);
+        try {
+          const res = await payoutService.getPayouts(vendorId);
+          setPayouts(res.data);
+        } catch (err) {
+          setPayouts([]);
+
+          console.error("Failed to fetch payouts", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetch();
+    }, [vendorId]),
+  );
+
+  const sortedPayouts = sortPayouts(payouts, selectedSort);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -162,7 +142,6 @@ export default function PayoutsScreen() {
           style={styles.sortButton}
           onPress={() => setSortVisible(true)}
         >
-          {/* Sort icon */}
           <View style={styles.sortIcon}>
             {[14, 10, 6].map((w, i) => (
               <View key={i} style={[styles.sortLine, { width: w }]} />
@@ -172,16 +151,40 @@ export default function PayoutsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* List */}
-      <FlatList
-        data={sortedPayouts}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => (
-          <PayoutItem item={item} isLast={index === sortedPayouts.length - 1} />
-        )}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
+      {/* Content */}
+      {loading ? (
+        <ActivityIndicator style={{ flex: 1 }} size="large" color="#3B6B44" />
+      ) : sortedPayouts.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>No payout history yet.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={sortedPayouts}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item, index }) => (
+            <PayoutItem
+              item={item}
+              isLast={index === sortedPayouts.length - 1}
+            />
+          )}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListFooterComponent={<View style={{ height: 100 }} />}
+        />
+      )}
+
+      {/* Floating request payout button */}
+      <View style={styles.fabContainer}>
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() =>
+            router.push("/(protected)/(tabs)/payouts/request-payout")
+          }
+        >
+          <Text style={styles.fabText}>Request Payout</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Sort Modal */}
       <Modal
@@ -230,39 +233,19 @@ export default function PayoutsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#ffffff",
-  },
-  // Sort bar
+  safe: { flex: 1, backgroundColor: "#ffffff" },
+
   sortBar: {
     paddingHorizontal: 20,
     paddingVertical: 12,
     alignItems: "flex-end",
   },
-  sortButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  sortIcon: {
-    gap: 3,
-    alignItems: "flex-end",
-  },
-  sortLine: {
-    height: 2,
-    backgroundColor: "#1a1a1a",
-    borderRadius: 1,
-  },
-  sortText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#1a1a1a",
-  },
-  // List
-  list: {
-    paddingHorizontal: 20,
-  },
+  sortButton: { flexDirection: "row", alignItems: "center", gap: 6 },
+  sortIcon: { gap: 3, alignItems: "flex-end" },
+  sortLine: { height: 2, backgroundColor: "#1a1a1a", borderRadius: 1 },
+  sortText: { fontSize: 16, fontWeight: "500", color: "#1a1a1a" },
+
+  list: { paddingHorizontal: 20 },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -273,24 +256,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "#d1d5db",
   },
-  rowLeft: {
-    gap: 6,
-  },
-  rowRight: {
-    alignItems: "flex-end",
-    gap: 6,
-  },
+  rowLeft: { gap: 6 },
+  rowRight: { alignItems: "flex-end", gap: 6 },
   reference: {
     fontSize: 17,
     fontWeight: "700",
     color: "#1a1a1a",
     letterSpacing: -0.3,
   },
-  date: {
-    fontSize: 14,
-    color: "#9ca3af",
-    fontWeight: "400",
-  },
+  date: { fontSize: 14, color: "#9ca3af", fontWeight: "400" },
   amount: {
     fontSize: 17,
     fontWeight: "700",
@@ -309,7 +283,29 @@ const styles = StyleSheet.create({
     color: "#d4a017",
     letterSpacing: 0.5,
   },
-  // Modal
+
+  emptyState: { flex: 1, alignItems: "center", justifyContent: "center" },
+  emptyText: { fontSize: 15, color: "#aaa" },
+
+  fabContainer: {
+    position: "absolute",
+    bottom: 24,
+    left: 24,
+    right: 24,
+  },
+  fab: {
+    backgroundColor: "#3B6B44",
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: "center",
+    shadowColor: "#3B6B44",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  fabText: { fontSize: 16, fontWeight: "700", color: "#fff" },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.35)",
@@ -344,15 +340,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "#f3f4f6",
   },
-  sortOptionText: {
-    fontSize: 16,
-    color: "#6b7280",
-    fontWeight: "400",
-  },
-  sortOptionActive: {
-    color: "#1a1a1a",
-    fontWeight: "600",
-  },
+  sortOptionText: { fontSize: 16, color: "#6b7280", fontWeight: "400" },
+  sortOptionActive: { color: "#1a1a1a", fontWeight: "600" },
   checkCircle: {
     width: 22,
     height: 22,
@@ -361,9 +350,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  checkMark: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "700",
-  },
+  checkMark: { color: "#ffffff", fontSize: 12, fontWeight: "700" },
 });

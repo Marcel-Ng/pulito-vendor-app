@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function Auth() {
   return (
@@ -40,7 +41,11 @@ export default function Auth() {
             <TouchableOpacity
               style={styles.buttonFilled}
               onPress={() => {
-                console.log("navigate to signup");
+                Toast.show({
+                  type: "info",
+                  text1: "To register",
+                  text2: "send an email to support@getpulito.com",
+                });
               }}
             >
               <Text style={styles.BtntextFilled}>Sign Up</Text>
