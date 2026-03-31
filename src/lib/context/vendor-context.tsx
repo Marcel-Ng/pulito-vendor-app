@@ -21,24 +21,10 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
   const [activeVendor, setActiveVendor] = useState<Vendor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  //   const mapApiToVendor = (v: any): Vendor => ({
-  //     id: v.id, // keep as string UUID
-  //     name: v.name,
-  //     avatarBg: v.avatarBg || "#3B82F6",
-  //     avatarEmoji: v.avatarEmoji || "🏪",
-  //     vendorType: v.vendorType || "Laundry",
-  //     profile: {
-  //       businessName: v.businessName,
-  //       phone: v.phone,
-  //       email: v.email,
-  //       address: v.address,
-  //     },
-  //     items: v.items || [],
-  //   });
-
   const mapApiToVendor = (v: any): Vendor => ({
     id: v.id,
     name: v.businessName, // was v.name
+    balance: v.balance ?? 0,
     avatarBg: "#3B82F6",
     avatarEmoji: "🏪",
     vendorType: v.type, // was v.vendorType

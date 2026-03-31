@@ -22,8 +22,6 @@ import {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const AVAILABLE_BALANCE = 485000; // replace with real balance from API
-
 function formatNGN(value: number): string {
   return `NGN ${value.toLocaleString("en-NG", { minimumFractionDigits: 2 })}`;
 }
@@ -39,6 +37,10 @@ export default function RequestPayoutScreen() {
   const { activeVendor } = useVendor();
   const vendorId = activeVendor?.id ?? "";
 
+  const [availableBalance, setAvailableBalance] = useState(
+    activeVendor?.balance ?? 0,
+  );
+
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(
@@ -51,7 +53,7 @@ export default function RequestPayoutScreen() {
 
   const amount = parseAmount(amountInput);
   const canSubmit =
-    selectedAccount !== null && amount > 0 && amount <= AVAILABLE_BALANCE;
+    selectedAccount !== null && amount > 0 && amount <= availableBalance;
 
   // Fetch bank accounts
   useEffect(() => {
@@ -69,8 +71,25 @@ export default function RequestPayoutScreen() {
     if (vendorId) fetch();
   }, [vendorId]);
 
+  // update vendor balance
+  // useEffect(() => {
+  //   const fetchBalance = async () => {
+  //     if (!vendorId) return;
+  //     try {
+  //       const res = await payoutService.getBalance(vendorId);
+  //       setAvailableBalance(res.data.balance);
+  //     } catch (err) {
+  //       console.error("Failed to fetch balance", err);
+  //       // falls back to activeVendor.balance already set as initial state
+  //     } finally {
+  //       setLoadingBalance(false);
+  //     }
+  //   };
+  //   fetchBalance();
+  // }, [vendorId]);
+
   const handleUseFullBalance = () => {
-    setAmountInput(AVAILABLE_BALANCE.toString());
+    setAmountInput(availableBalance.toString());
   };
 
   const handleSubmit = async () => {
@@ -113,7 +132,7 @@ export default function RequestPayoutScreen() {
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Available Balance</Text>
           <Text style={styles.balanceAmount}>
-            {formatNGN(AVAILABLE_BALANCE)}
+            {formatNGN(availableBalance)}
           </Text>
         </View>
 
@@ -138,7 +157,7 @@ export default function RequestPayoutScreen() {
             <Text style={styles.maxBtnText}>Use Max</Text>
           </TouchableOpacity>
         </View>
-        {amount > AVAILABLE_BALANCE && (
+        {amount > availableBalance && (
           <Text style={styles.errorText}>Amount exceeds available balance</Text>
         )}
 

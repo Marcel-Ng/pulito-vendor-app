@@ -48,8 +48,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setIsLoading(true);
     try {
       const response = await authService.login(email, password);
-      // Persist the data
-      console.log(response.data);
+
+      if (response.data.user.role !== "vendor") {
+        Toast.show({
+          type: "error",
+          text1: "Access Denied",
+          text2: "This user is not a vendor",
+        });
+        return;
+      }
       await SecureStore.setItemAsync("user_token", response.data.accessToken);
       await SecureStore.setItemAsync(
         "user_data",

@@ -9,9 +9,14 @@ export type BusinessProfile = {
 export type Vendor = {
   id: string;
   name: string;
+  balance: number;
   avatarBg: string;
   avatarEmoji: string;
   vendorType: "Car Wash" | "Laundry";
   profile: BusinessProfile;
   items: ServiceItem[];
+};
+
+export type BalanceResponse = {
+  balance: number;
 };

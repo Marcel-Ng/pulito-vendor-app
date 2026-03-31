@@ -19,7 +19,7 @@ export const payoutService = {
   getPayouts: async (
     vendorId: string,
   ): Promise<ApiResponse<PayoutResponse[]>> => {
-    const response = await api.get(`/vendors/${vendorId}/payouts`);
+    const response = await api.get(`/payouts/vendors/${vendorId}`);
     return response.data;
   },
 

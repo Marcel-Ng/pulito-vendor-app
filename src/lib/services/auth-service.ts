@@ -16,10 +16,6 @@ export const authService = {
     password: string,
   ): Promise<ApiResponse<loginResponse>> => {
     const response = await api.post("/auth/login", { email, password });
-    // console.log(response);
-    // if (response.data.user?.role !== "vendor") {
-    //   throw new Error("user is not a vendor");
-    // }
     return response.data;
   },
 
