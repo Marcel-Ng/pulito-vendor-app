@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   ScrollView,
@@ -155,96 +156,105 @@ export default function BankSettingsScreen() {
       </ScrollView>
 
       {/* Bottom Sheet Modal */}
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={handleClose}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ width: "100%" }}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={handleClose}
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={handleClose}
         >
           <TouchableOpacity
-            style={styles.bottomSheet}
+            style={styles.modalOverlay}
             activeOpacity={1}
-            onPress={() => setBankDropdownOpen(false)}
+            onPress={handleClose}
           >
-            <View style={styles.sheetHandle} />
-
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Add Bank Details</Text>
-              <TouchableOpacity onPress={handleClose}>
-                <Ionicons name="close" size={22} color="#111" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Bank selector */}
-            <Text style={styles.sheetLabel}>Bank</Text>
             <TouchableOpacity
-              style={styles.dropdown}
-              onPress={(e) => {
-                e.stopPropagation();
-                setBankDropdownOpen((v) => !v);
-              }}
+              style={styles.bottomSheet}
+              activeOpacity={1}
+              onPress={() => setBankDropdownOpen(false)}
             >
-              <Text
-                style={[
-                  styles.dropdownText,
-                  !selectedBank && styles.placeholderText,
-                ]}
-              >
-                {selectedBank || "UBA, Zenith etc."}
-              </Text>
-              <Ionicons name="chevron-down" size={20} color="#666" />
-            </TouchableOpacity>
+              <View style={styles.sheetHandle} />
 
-            {bankDropdownOpen && (
-              <View style={styles.dropdownMenu}>
-                <ScrollView style={{ maxHeight: 180 }} nestedScrollEnabled>
-                  {BANKS.map((bank) => (
-                    <TouchableOpacity
-                      key={bank}
-                      style={styles.dropdownItem}
-                      onPress={() => {
-                        setSelectedBank(bank);
-                        setBankDropdownOpen(false);
-                      }}
-                    >
-                      <Text style={styles.dropdownItemText}>{bank}</Text>
-                      {selectedBank === bank && (
-                        <Ionicons name="checkmark" size={16} color="#3B6B44" />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+              <View style={styles.sheetHeader}>
+                <Text style={styles.sheetTitle}>Add Bank Details</Text>
+                <TouchableOpacity onPress={handleClose}>
+                  <Ionicons name="close" size={22} color="#111" />
+                </TouchableOpacity>
               </View>
-            )}
 
-            {/* Account number */}
-            <Text style={[styles.sheetLabel, { marginTop: 20 }]}>
-              Account Number
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="00000000000"
-              placeholderTextColor="#bbb"
-              keyboardType="number-pad"
-              maxLength={11}
-              value={accountNumber}
-              onChangeText={setAccountNumber}
-            />
+              {/* Bank selector */}
+              <Text style={styles.sheetLabel}>Bank</Text>
+              <TouchableOpacity
+                style={styles.dropdown}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setBankDropdownOpen((v) => !v);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dropdownText,
+                    !selectedBank && styles.placeholderText,
+                  ]}
+                >
+                  {selectedBank || "UBA, Zenith etc."}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color="#666" />
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.saveBtn, canSave && styles.saveBtnActive]}
-              onPress={handleSave}
-            >
-              <Text style={styles.saveBtnText}>Save</Text>
+              {bankDropdownOpen && (
+                <View style={styles.dropdownMenu}>
+                  <ScrollView style={{ maxHeight: 180 }} nestedScrollEnabled>
+                    {BANKS.map((bank) => (
+                      <TouchableOpacity
+                        key={bank}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setSelectedBank(bank);
+                          setBankDropdownOpen(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>{bank}</Text>
+                        {selectedBank === bank && (
+                          <Ionicons
+                            name="checkmark"
+                            size={16}
+                            color="#3B6B44"
+                          />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Account number */}
+              <Text style={[styles.sheetLabel, { marginTop: 20 }]}>
+                Account Number
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="00000000000"
+                placeholderTextColor="#bbb"
+                keyboardType="number-pad"
+                maxLength={11}
+                value={accountNumber}
+                onChangeText={setAccountNumber}
+              />
+
+              <TouchableOpacity
+                style={[styles.saveBtn, canSave && styles.saveBtnActive]}
+                onPress={handleSave}
+              >
+                <Text style={styles.saveBtnText}>Save</Text>
+              </TouchableOpacity>
             </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+        </Modal>
+      </KeyboardAvoidingView>
     </View>
   );
 

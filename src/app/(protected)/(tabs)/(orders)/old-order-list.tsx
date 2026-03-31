@@ -1,10 +1,8 @@
 import { EmptyOrders } from "@/src/component/orders";
-import { useOrders } from "@/src/lib/context/order-context";
-import { Order } from "@/src/types/order.types";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   ScrollView,
   StyleSheet,
@@ -13,6 +11,25 @@ import {
   View,
 } from "react-native";
 
+type Order = {
+  id: string;
+  orderNumber: string;
+  pickupDate: string;
+  deliveryDate: string;
+  itemCount: number;
+  totalPrice: number;
+};
+
+type OrderList = {
+  newOrders: Order[];
+  pickupOrders: Order[];
+  ongoingOrders: Order[];
+  readyOrders: Order[];
+  deliveryOrders: Order[];
+  completedOrders: Order[];
+};
+
+// ✅ Explicit status type
 type OrderStatus =
   | "new"
   | "pickup"
@@ -21,43 +38,46 @@ type OrderStatus =
   | "delivery"
   | "completed";
 
-const VALID_STATUSES: OrderStatus[] = [
-  "new",
-  "pickup",
-  "ongoing",
-  "ready",
-  "delivery",
-  "completed",
-];
-
-const titleMap: Record<OrderStatus, string> = {
-  new: "New Orders",
-  pickup: "Out for Pickup",
-  ongoing: "Ongoing",
-  ready: "Ready",
-  delivery: "Out for Delivery",
-  completed: "Completed",
+const MOCK_ORDERS: OrderList = {
+  newOrders: [],
+  pickupOrders: [],
+  ongoingOrders: [],
+  readyOrders: [],
+  deliveryOrders: [],
+  completedOrders: [
+    {
+      id: "1",
+      orderNumber: "1210393783",
+      pickupDate: "Nov 24 | 11:30",
+      deliveryDate: "Nov 27 | 12:30",
+      itemCount: 2,
+      totalPrice: 12000,
+    },
+  ],
 };
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-NG", {
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export default function OrderListScreen() {
   const router = useRouter();
   const { status } = useLocalSearchParams();
-  const { orders, isLoadingOrder } = useOrders();
+
+  const [orders] = useState<OrderList>(MOCK_ORDERS);
+
+  // ✅ Normalize status safely
+  const VALID_STATUSES: OrderStatus[] = [
+    "new",
+    "pickup",
+    "ongoing",
+    "ready",
+    "delivery",
+    "completed",
+  ];
 
   const safeStatus: OrderStatus =
     typeof status === "string" && VALID_STATUSES.includes(status as OrderStatus)
       ? (status as OrderStatus)
       : "new";
 
+  // ✅ Map status → actual data
   const orderMap: Record<OrderStatus, Order[]> = {
     new: orders.newOrders,
     pickup: orders.pickupOrders,
@@ -68,6 +88,17 @@ export default function OrderListScreen() {
   };
 
   const currentOrders = orderMap[safeStatus];
+
+  // ✅ Title map
+  const titleMap: Record<OrderStatus, string> = {
+    new: "New Orders",
+    pickup: "Out for Pickup",
+    ongoing: "Ongoing",
+    ready: "Ready",
+    delivery: "Out for Delivery",
+    completed: "Completed",
+  };
+
   const screenTitle = titleMap[safeStatus];
 
   const handleAccept = (id: string) => {
@@ -95,13 +126,8 @@ export default function OrderListScreen() {
           <Text style={styles.title}>{screenTitle}</Text>
         </View>
 
-        {isLoadingOrder ? (
-          <ActivityIndicator
-            color="#3B6B44"
-            size="large"
-            style={{ marginTop: 60 }}
-          />
-        ) : currentOrders.length === 0 ? (
+        {/* Empty State */}
+        {currentOrders.length === 0 ? (
           <EmptyOrders
             message={`No ${screenTitle.toLowerCase()} at the moment`}
           />
@@ -119,13 +145,9 @@ export default function OrderListScreen() {
 
                 {/* Date range */}
                 <View style={styles.dateRow}>
-                  <Text style={styles.dateText}>
-                    {formatDate(order.pickupDate)}
-                  </Text>
+                  <Text style={styles.dateText}>{order.pickupDate}</Text>
                   <View style={styles.dashedLine} />
-                  <Text style={styles.dateText}>
-                    {formatDate(order.deliveryDate)}
-                  </Text>
+                  <Text style={styles.dateText}>{order.deliveryDate}</Text>
                 </View>
 
                 {/* Items + price */}
@@ -142,7 +164,7 @@ export default function OrderListScreen() {
                 <View style={styles.divider} />
               </TouchableOpacity>
 
-              {/* Actions — only for new orders */}
+              {/* Actions (only for new orders) */}
               {safeStatus === "new" && (
                 <View style={styles.actions}>
                   <TouchableOpacity
@@ -180,6 +202,7 @@ const styles = StyleSheet.create({
   backBtn: { padding: 4 },
   title: { fontSize: 22, fontWeight: "700", color: "#111" },
 
+  // Card
   card: {
     borderWidth: 1,
     borderColor: "#e8e8e8",
@@ -192,18 +215,22 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+
   orderNumber: {
     fontSize: 15,
     fontWeight: "600",
     color: "#111",
     marginBottom: 12,
   },
+
+  // Date row
   dateRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
   },
   dateText: { fontSize: 14, color: "#888" },
+
   dashedLine: {
     flex: 1,
     height: 1,
@@ -212,6 +239,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc",
   },
+
+  // Meta
   metaRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -219,23 +248,31 @@ const styles = StyleSheet.create({
   },
   itemCount: { fontSize: 14, color: "#888" },
   price: { fontSize: 16, fontWeight: "700", color: "#111" },
+
   divider: {
     height: 1,
     backgroundColor: "#f0f0f0",
     marginVertical: 16,
   },
+
+  // Actions
   actions: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
-  rejectBtn: { paddingVertical: 4, paddingHorizontal: 8 },
+
+  rejectBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
   rejectText: {
     fontSize: 15,
     fontWeight: "600",
     color: "#8B0000",
     textDecorationLine: "underline",
   },
+
   acceptBtn: {
     flex: 1,
     backgroundColor: "#3B6B44",
@@ -243,5 +280,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
   },
-  acceptText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  acceptText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
 });

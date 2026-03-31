@@ -1,11 +1,8 @@
 import { OrderCard, OrderCardProps } from "@/src/component/orders";
 import { Icon } from "@/src/component/shared";
-import { useOrders } from "@/src/lib/context/order-context";
-import { useVendor } from "@/src/lib/context/vendor-context";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -17,11 +14,52 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
-  const { activeVendor } = useVendor();
-  const { stats, isLoadingOrder } = useOrders();
-
   const [isOpen, setIsOpen] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
+
+  const orderCategories: OrderCardProps[] = [
+    {
+      icon: "orders",
+      label: "New Orders",
+      badge: 0,
+      onPress: () => navigateToOrdersList("new"),
+    },
+    {
+      icon: "pickup",
+      label: "Out for pickup",
+      badge: 0,
+
+      onPress: () => navigateToOrdersList("pickup"),
+    },
+    {
+      icon: "ongoing",
+      label: "Ongoing",
+      badge: 0,
+
+      onPress: () => navigateToOrdersList("ongoing"),
+    },
+    {
+      icon: "ready",
+      label: "Ready",
+      badge: 0,
+
+      onPress: () => navigateToOrdersList("ready"),
+    },
+    {
+      icon: "delivery",
+      label: "Out for delivery",
+      badge: 0,
+
+      onPress: () => navigateToOrdersList("delivery"),
+    },
+    {
+      icon: "completed",
+      label: "Completed",
+      badge: 7,
+
+      onPress: () => navigateToOrdersList("completed"),
+    },
+  ];
 
   function navigateToOrdersList(status: string) {
     router.navigate({
@@ -29,45 +67,6 @@ export default function HomeScreen() {
       params: { status },
     });
   }
-
-  const orderCategories: OrderCardProps[] = [
-    {
-      icon: "orders",
-      label: "New Orders",
-      badge: stats.totalNew,
-      onPress: () => navigateToOrdersList("new"),
-    },
-    {
-      icon: "pickup",
-      label: "Out for pickup",
-      badge: stats.totalPickup,
-      onPress: () => navigateToOrdersList("pickup"),
-    },
-    {
-      icon: "ongoing",
-      label: "Ongoing",
-      badge: stats.totalOngoing,
-      onPress: () => navigateToOrdersList("ongoing"),
-    },
-    {
-      icon: "ready",
-      label: "Ready",
-      badge: stats.totalReady,
-      onPress: () => navigateToOrdersList("ready"),
-    },
-    {
-      icon: "delivery",
-      label: "Out for delivery",
-      badge: stats.totalDelivery,
-      onPress: () => navigateToOrdersList("delivery"),
-    },
-    {
-      icon: "completed",
-      label: "Completed",
-      badge: stats.totalCompleted,
-      onPress: () => navigateToOrdersList("completed"),
-    },
-  ];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -79,7 +78,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.shopName} numberOfLines={1}>
-            {activeVendor?.name ?? "Loading..."}
+            Washerman Dry-clea...
           </Text>
           <View style={styles.statusToggle}>
             <Text style={styles.statusText}>{isOpen ? "Open" : "Closed"}</Text>
@@ -106,9 +105,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
           <Text style={styles.walletAmount}>
-            {balanceVisible
-              ? `NGN ${(activeVendor?.balance ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`
-              : "NGN ••••"}
+            {balanceVisible ? "NGN 0" : "NGN ••••"}
           </Text>
           <View style={styles.divider} />
           <TouchableOpacity>
@@ -117,38 +114,34 @@ export default function HomeScreen() {
         </View>
 
         {/* Order Grid */}
-        {isLoadingOrder ? (
-          <ActivityIndicator
-            color="#3B6B44"
-            style={{ marginTop: 32 }}
-            size="large"
-          />
-        ) : (
-          <>
-            <View style={styles.grid}>
-              {orderCategories.map((item, index) => (
-                <OrderCard key={index} {...item} />
-              ))}
-            </View>
+        <View style={styles.grid}>
+          {orderCategories.map((item, index) => (
+            <OrderCard key={index} {...item} />
+          ))}
+        </View>
 
-            {/* Rejected — full width */}
-            <OrderCard
-              icon="rejected"
-              label="Rejected"
-              fullWidth={true}
-              badge={0}
-            />
-          </>
-        )}
+        {/* Rejected — full width */}
+        <OrderCard
+          icon="rejected"
+          label="Rejected"
+          fullWidth={true}
+          badge={2}
+        />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f5f5f5" },
-  scroll: { padding: 16, paddingBottom: 32 },
-
+  safe: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  scroll: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  // Header
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -173,8 +166,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  statusText: { fontSize: 14, color: "#6b7280", fontWeight: "500" },
-
+  statusText: {
+    fontSize: 14,
+    color: "#6b7280",
+    fontWeight: "500",
+  },
+  // Wallet
   walletCard: {
     backgroundColor: "#ffffff",
     borderRadius: 16,
@@ -189,7 +186,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  walletLabel: { fontSize: 14, color: "#6b7280", fontWeight: "400" },
+  walletLabel: {
+    fontSize: 14,
+    color: "#6b7280",
+    fontWeight: "400",
+  },
   walletAmount: {
     fontSize: 32,
     fontWeight: "700",
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
   },
-
+  // Grid
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
