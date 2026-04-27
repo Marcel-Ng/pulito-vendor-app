@@ -120,7 +120,6 @@ function LoginScreen() {
           <TouchableOpacity
             style={styles.forgotLink}
             onPress={() => {
-              console.log("navigate to forgot password");
               router.push("/auth/forgot-password");
             }}
           >

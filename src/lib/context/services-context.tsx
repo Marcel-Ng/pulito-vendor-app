@@ -143,6 +143,7 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
   // ── POST /vendor/service-items ────────────────────────────────────────────
   const createItem = useCallback(
     async (input: ServiceItemInput): Promise<ServiceItem | null> => {
+      console.log("Starting item creation with input:", input);
       console.log("Creating item with input:", input);
       if (!vendorId) return null;
       const key = "create";

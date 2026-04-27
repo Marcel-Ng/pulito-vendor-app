@@ -13,10 +13,12 @@ export const vendorServicesService = {
     vendorId: string,
     input: ServiceItemInput,
   ): Promise<ServiceItem> => {
+    console.log("Creating item with input:", input);
     const { data } = await api.post<ApiResponse<ServiceItem>>(
       `/vendors/${vendorId}/service-items`,
-      { input },
+      input,
     );
+    console.log("Created item:", data);
     return data.data;
   },
 

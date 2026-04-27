@@ -2,6 +2,7 @@ import { vendorService } from "@/src/lib/services/vendor.service";
 import { BusinessProfile, Vendor } from "@/src/types/vendor.types";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { useAuth } from "./AuthContext";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type VendorContextType = {
@@ -20,6 +21,7 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
   const [vendors, setVendors] = useState<Vendor[]>([]); // no mock data
   const [activeVendor, setActiveVendor] = useState<Vendor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { logOut } = useAuth();
 
   const mapApiToVendor = (v: any): Vendor => ({
     id: v.id,
@@ -41,6 +43,12 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       const data = await vendorService.getVendorsByUser();
+
+      if (!data || data.length === 0) {
+        console.warn("No vendors found for user");
+        logOut();
+        return;
+      }
       const mapped = data.map(mapApiToVendor);
       setVendors(mapped);
       if (mapped.length > 0) {
