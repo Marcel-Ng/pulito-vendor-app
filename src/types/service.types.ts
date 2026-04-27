@@ -2,7 +2,7 @@ export interface ServiceItem {
   id: string;
   category: string;
   name: string;
-  amount: string;
+  price: number;
 }
 
 export type ServiceItemInput = Omit<ServiceItem, "id">;

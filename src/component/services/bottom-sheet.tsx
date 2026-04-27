@@ -43,18 +43,18 @@ export function ItemBottomSheet({
   const insets = useSafeAreaInsets();
   const [category, setCategory] = useState("");
   const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
+  const [price, setPrice] = useState<number>(0);
 
   useEffect(() => {
     if (visible) {
       setCategory(initialData?.category ?? defaultCategory ?? "");
       setName(initialData?.name ?? "");
-      setAmount(initialData?.amount ?? "");
+      setPrice(initialData?.price ?? 0);
     }
   }, [visible, initialData, defaultCategory]);
 
   const isCreate = mode === "create";
-  const canSubmit = category && name && amount;
+  const canSubmit = category && name && price;
 
   return (
     <Modal
@@ -114,8 +114,8 @@ export function ItemBottomSheet({
                 placeholder="Amount"
                 placeholderTextColor="#AAAAAA"
                 keyboardType="numeric"
-                value={amount}
-                onChangeText={setAmount}
+                value={price ? price.toString() : ""}
+                onChangeText={(text) => setPrice(parseFloat(text) || 0)}
               />
 
               {isCreate ? (
@@ -126,7 +126,7 @@ export function ItemBottomSheet({
                     !canSubmit && { opacity: 0.5 },
                   ]}
                   onPress={() =>
-                    canSubmit && onSubmit({ category, name, amount })
+                    canSubmit && onSubmit({ category, name, price })
                   }
                   activeOpacity={0.85}
                 >
@@ -144,7 +144,7 @@ export function ItemBottomSheet({
                       !canSubmit && { opacity: 0.5 },
                     ]}
                     onPress={() =>
-                      canSubmit && onSubmit({ category, name, amount })
+                      canSubmit && onSubmit({ category, name, price })
                     }
                     activeOpacity={0.85}
                   >

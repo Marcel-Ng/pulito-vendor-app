@@ -143,6 +143,7 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
   // ── POST /vendor/service-items ────────────────────────────────────────────
   const createItem = useCallback(
     async (input: ServiceItemInput): Promise<ServiceItem | null> => {
+      console.log("Creating item with input:", input);
       if (!vendorId) return null;
       const key = "create";
       dispatch({ type: "MUTATE_START", key });
@@ -225,7 +226,6 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
 
   const clearError = useCallback(() => dispatch({ type: "CLEAR_ERROR" }), []);
 
-  // Auto-fetch on mount
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);

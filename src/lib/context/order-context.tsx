@@ -56,7 +56,6 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     setIsLoadingOrder(true);
     try {
       const res = await orderService.getOrders(vendorId);
-      console.log(res);
       setOrders(res.data.orders);
       setStats(res.data.stats);
     } catch (err) {

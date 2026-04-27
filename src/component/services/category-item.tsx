@@ -16,7 +16,7 @@ interface ServiceItem {
   id: string;
   category: string;
   name: string;
-  amount: string;
+  price: number;
 }
 
 const GREEN = "#3B5E3A";
@@ -45,7 +45,8 @@ export default function CategoryItemsScreen({
   onOpenCreate: () => void;
   onEditItem: (item: ServiceItem) => void;
 }) {
-  const total = items.reduce((sum, i) => sum + parseFloat(i.amount || "0"), 0);
+  // const total = items.reduce((sum, i) => sum + parseFloat(i.price || "0"), 0);
+  const total = items.reduce((sum, i) => sum + i.price, 0);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -88,8 +89,8 @@ export default function CategoryItemsScreen({
             <View style={styles.summaryBar}>
               <Text style={styles.summaryLabel}>Price Range</Text>
               <Text style={styles.summaryValue}>
-                ₦{Math.min(...items.map((i) => +i.amount)).toLocaleString()} – ₦
-                {Math.max(...items.map((i) => +i.amount)).toLocaleString()}
+                ₦{Math.min(...items.map((i) => +i.price)).toLocaleString()} – ₦
+                {Math.max(...items.map((i) => +i.price)).toLocaleString()}
               </Text>
             </View>
           }
@@ -105,7 +106,8 @@ export default function CategoryItemsScreen({
               <Text style={styles.itemRowName}>{item.name}</Text>
               <View style={styles.itemRowRight}>
                 <Text style={styles.itemRowAmount}>
-                  ₦{parseFloat(item.amount).toLocaleString()}
+                  {/* ₦{parseFloat(item.price).toLocaleString()} */}₦
+                  {item.price.toLocaleString()}
                 </Text>
                 <View style={styles.editPill}>
                   <Text style={styles.editPillText}>Edit</Text>

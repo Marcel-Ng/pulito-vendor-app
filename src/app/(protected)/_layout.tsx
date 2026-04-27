@@ -3,13 +3,10 @@ import { OrderProvider } from "@/src/lib/context/order-context";
 import { ServicesProvider } from "@/src/lib/context/services-context";
 import { VendorProvider } from "@/src/lib/context/vendor-context";
 import { Redirect, Stack } from "expo-router";
-import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 export default function ProtectedLayout() {
-  const { isLoggedIn } = useAuth();
-  // const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoggedIn, isLoading } = useAuth();
 
   if (isLoading) {
     return (

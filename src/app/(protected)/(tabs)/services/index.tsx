@@ -3,6 +3,7 @@ import {
   CategoryItemsScreen,
   ItemBottomSheet,
 } from "@/src/component/services";
+import { useServices } from "@/src/lib/context/services-context";
 import { useVendor } from "@/src/lib/context/vendor-context";
 import { ModalMode, ServiceItem } from "@/src/types/service.types";
 import { useEffect, useState } from "react";
@@ -31,6 +32,7 @@ export default function ServicesScreen() {
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [editTarget, setEditTarget] = useState<ServiceItem | undefined>();
   const { vendors, activeVendor, setActiveVendor } = useVendor();
+  const { createItem } = useServices();
 
   const categoryItems =
     items?.filter((i) => i.category === activeCategory) ?? [];
@@ -51,22 +53,41 @@ export default function ServicesScreen() {
     setSearch("");
   };
 
-  const handleSubmit = (data: Omit<ServiceItem, "id">) => {
+  // const handleSubmit = (data: Omit<ServiceItem, "id">) => {
+  //   if (modalMode === "create") {
+  //     const newItem = { id: Date.now().toString(), ...data };
+  //     setItems((prev) => [...prev, newItem]);
+  //     // If we're on items screen for a different category, navigate there
+  //     if (screen === "items" && data.category !== activeCategory) {
+  //       setActiveCategory(data.category);
+  //     }
+  //   } else if (modalMode === "edit" && editTarget) {
+  //     setItems((prev) =>
+  //       prev.map((i) => (i.id === editTarget.id ? { ...i, ...data } : i)),
+  //     );
+  //   }
+  //   setModalMode(null);
+  // };
+
+  const handleSubmit = async (data: Omit<ServiceItem, "id">) => {
     if (modalMode === "create") {
-      const newItem = { id: Date.now().toString(), ...data };
-      setItems((prev) => [...prev, newItem]);
-      // If we're on items screen for a different category, navigate there
-      if (screen === "items" && data.category !== activeCategory) {
-        setActiveCategory(data.category);
+      const newItem = await createItem(data);
+      if (newItem) {
+        // Only update local state if the backend call succeeded
+        setItems((prev) => [...prev, newItem]); // newItem already has the real id from backend
+
+        if (screen === "items" && data.category !== activeCategory) {
+          setActiveCategory(data.category);
+        }
       }
     } else if (modalMode === "edit" && editTarget) {
       setItems((prev) =>
         prev.map((i) => (i.id === editTarget.id ? { ...i, ...data } : i)),
       );
     }
+
     setModalMode(null);
   };
-
   const handleReject = () => {
     if (editTarget) {
       setItems((prev) => prev.filter((i) => i.id !== editTarget.id));
@@ -78,7 +99,7 @@ export default function ServicesScreen() {
     setEditTarget(undefined);
     // Pre-select the category if we're on the items screen
     if (defaultCat) {
-      setEditTarget({ id: "", category: defaultCat, name: "", amount: "" });
+      setEditTarget({ id: "", category: defaultCat, name: "", price: 0 });
     }
     setModalMode("create");
   };

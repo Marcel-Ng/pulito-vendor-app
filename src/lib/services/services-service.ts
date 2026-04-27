@@ -15,7 +15,7 @@ export const vendorServicesService = {
   ): Promise<ServiceItem> => {
     const { data } = await api.post<ApiResponse<ServiceItem>>(
       `/vendors/${vendorId}/service-items`,
-      input,
+      { input },
     );
     return data.data;
   },
