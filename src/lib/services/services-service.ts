@@ -25,7 +25,7 @@ export const vendorServicesService = {
     id: string,
     input: ServiceItemInput,
   ): Promise<ServiceItem> => {
-    const { data } = await api.put<ApiResponse<ServiceItem>>(
+    const { data } = await api.patch<ApiResponse<ServiceItem>>(
       `/vendors/${vendorId}/service-items/${id}`,
       input,
     );

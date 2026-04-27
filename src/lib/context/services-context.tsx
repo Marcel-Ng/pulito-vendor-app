@@ -122,15 +122,15 @@ function reducer(state: ServicesState, action: Action): ServicesState {
 const ServicesContext = createContext<ServicesContextValue | null>(null);
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
-
+// Change this to vendors service Provider
 export function ServicesProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { activeVendor } = useVendor(); // 👈 get active vendor
+  const { activeVendor } = useVendor(); // get active vendor
   const vendorId = activeVendor?.id;
 
   // ── GET /vendor/service-items ─────────────────────────────────────────────
   const fetchItems = useCallback(async () => {
-    if (!vendorId) return; // 👈 guard
+    if (!vendorId) return; // guard
     dispatch({ type: "FETCH_START" });
     try {
       const data = await vendorServicesService.getAll(vendorId);
@@ -138,7 +138,7 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       dispatch({ type: "FETCH_ERROR", payload: extractError(err) });
     }
-  }, [vendorId]); // 👈 re-fetch when vendor switches
+  }, [vendorId]); // re-fetch when vendor switches
 
   // ── POST /vendor/service-items ────────────────────────────────────────────
   const createItem = useCallback(
@@ -226,6 +226,7 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
 
   const clearError = useCallback(() => dispatch({ type: "CLEAR_ERROR" }), []);
 
+  // Fetch items on mount and when vendor changes
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);

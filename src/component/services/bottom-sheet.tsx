@@ -1,5 +1,7 @@
 // ─── Bottom Sheet ─────────────────────────────────────────────────────────────
 
+import { ActivityIndicator } from "react-native";
+
 import { GREEN } from "@/constants/Colors";
 import {
   CARWASH_SERVICE_CATEGORIES,
@@ -30,6 +32,7 @@ export function ItemBottomSheet({
   onClose,
   onSubmit,
   onReject,
+  isSaving,
 }: {
   vendorType: "Car Wash" | "Laundry";
   visible: boolean;
@@ -39,6 +42,7 @@ export function ItemBottomSheet({
   onClose: () => void;
   onSubmit: (data: Omit<ServiceItem, "id">) => void;
   onReject?: () => void;
+  isSaving?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   const [category, setCategory] = useState("");
@@ -118,7 +122,7 @@ export function ItemBottomSheet({
                 onChangeText={(text) => setPrice(parseFloat(text) || 0)}
               />
 
-              {isCreate ? (
+              {/* {isCreate ? (
                 <TouchableOpacity
                   style={[
                     styles.primaryBtn,
@@ -151,7 +155,27 @@ export function ItemBottomSheet({
                     <Text style={styles.primaryBtnText}>Save Changes</Text>
                   </TouchableOpacity>
                 </View>
-              )}
+              )} */}
+
+              <TouchableOpacity
+                style={[
+                  styles.primaryBtn,
+                  { marginTop: 28 },
+                  (!canSubmit || isSaving) && { opacity: 0.5 },
+                ]}
+                onPress={() =>
+                  canSubmit && !isSaving && onSubmit({ category, name, price })
+                }
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.primaryBtnText}>
+                    {isCreate ? "Create" : "Save Changes"}
+                  </Text>
+                )}
+              </TouchableOpacity>
               <View style={{ height: 36 }} />
             </ScrollView>
           </View>
