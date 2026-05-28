@@ -15,19 +15,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-// import { Platform, StyleSheet, Text, TouchableOpacity } from "react-native";
 
-const BANKS = [
-  "Access Bank",
-  "First Bank",
-  "GTBank",
-  "UBA",
-  "Zenith Bank",
-  "Fidelity Bank",
-  "Sterling Bank",
-  "Polaris Bank",
-  "Stanbic IBTC",
-  "Wema Bank",
+const BANKS: { name: string; code: string }[] = [
+  { name: "Access Bank", code: "044" },
+  { name: "First Bank", code: "011" },
+  { name: "GTBank", code: "058" },
+  { name: "UBA", code: "033" },
+  { name: "Zenith Bank", code: "057" },
+  { name: "Fidelity Bank", code: "070" },
+  { name: "Sterling Bank", code: "232" },
+  { name: "Polaris Bank", code: "076" },
+  { name: "Stanbic IBTC", code: "221" },
+  { name: "Wema Bank", code: "035" },
 ];
 
 type BankAccount = {
@@ -48,6 +47,9 @@ export default function BankSettingsScreen() {
   const [bankDropdownOpen, setBankDropdownOpen] = useState(false);
   const [selectedBank, setSelectedBank] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
+  const [selectedBankCode, setSelectedBankCode] = useState("");
+  const [resolvedName, setResolvedName] = useState("");
+  const [isResolving, setIsResolving] = useState(false);
 
   const canSave = selectedBank && accountNumber.length >= 10 && !saving;
 
@@ -72,6 +74,35 @@ export default function BankSettingsScreen() {
     fetchAccounts();
   }, [vendorId]);
 
+  // Resolve account name when account number or bank changes
+  useEffect(() => {
+    const resolveAccount = async () => {
+      if (accountNumber.length === 10 && selectedBankCode) {
+        setIsResolving(true);
+        setResolvedName(""); // Reset name while searching
+        try {
+          // Assuming you'll add this method to your bankAccountService
+          const res = await bankAccountService.resolveAccount(
+            accountNumber,
+            selectedBankCode,
+          );
+          if (res.data?.account_name) {
+            setResolvedName(res.data.account_name);
+          }
+        } catch (err) {
+          console.error("Resolution failed", err);
+          setResolvedName("Could not resolve account");
+        } finally {
+          setIsResolving(false);
+        }
+      } else {
+        setResolvedName("");
+      }
+    };
+
+    resolveAccount();
+  }, [accountNumber, selectedBankCode]);
+
   if (!activeVendor) return <ActivityIndicator style={{ flex: 1 }} />;
 
   const handleSave = async () => {
@@ -81,6 +112,7 @@ export default function BankSettingsScreen() {
       const res = await bankAccountService.addBankAccount(vendorId, {
         bankName: selectedBank,
         accountNumber,
+        accountName: resolvedName || "N/A",
       });
       setAccounts((prev) => [...prev, res.data]);
       handleClose();
@@ -185,6 +217,74 @@ export default function BankSettingsScreen() {
                 </TouchableOpacity>
               </View>
 
+              {/* Bank selector
+              <Text style={styles.sheetLabel}>Bank</Text>
+              <TouchableOpacity
+                style={styles.dropdown}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setBankDropdownOpen((v) => !v);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dropdownText,
+                    !selectedBank && styles.placeholderText,
+                  ]}
+                >
+                  {selectedBank || "UBA, Zenith etc."}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color="#666" />
+              </TouchableOpacity>
+
+              {bankDropdownOpen && (
+                <View style={styles.dropdownMenu}>
+                  <ScrollView style={{ maxHeight: 180 }} nestedScrollEnabled>
+                    {BANKS.map((bank) => (
+                      <TouchableOpacity
+                        key={bank.code}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setSelectedBankCode(bank.code);
+                          setBankDropdownOpen(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>{bank.name}</Text>
+                        {selectedBank === bank.name && (
+                          <Ionicons
+                            name="checkmark"
+                            size={16}
+                            color="#3B6B44"
+                          />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Account number */}
+              {/* <Text style={[styles.sheetLabel, { marginTop: 20 }]}>
+                Account Number
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="00000000000"
+                placeholderTextColor="#bbb"
+                keyboardType="number-pad"
+                maxLength={11}
+                value={accountNumber}
+                onChangeText={setAccountNumber}
+              />
+
+              <TouchableOpacity
+                style={[styles.saveBtn, canSave && styles.saveBtnActive]}
+                onPress={handleSave}
+              >
+                <Text style={styles.saveBtnText}>Save</Text> */}
+              {/* </TouchableOpacity> */}
+
+              {/* ------------RRRRR---------- */}
               {/* Bank selector */}
               <Text style={styles.sheetLabel}>Bank</Text>
               <TouchableOpacity
@@ -210,15 +310,16 @@ export default function BankSettingsScreen() {
                   <ScrollView style={{ maxHeight: 180 }} nestedScrollEnabled>
                     {BANKS.map((bank) => (
                       <TouchableOpacity
-                        key={bank}
+                        key={bank.code} // Use the unique bank code as the key
                         style={styles.dropdownItem}
                         onPress={() => {
-                          setSelectedBank(bank);
+                          setSelectedBank(bank.name); // Set the display name
+                          setSelectedBankCode(bank.code); // Set the code for the API call
                           setBankDropdownOpen(false);
                         }}
                       >
-                        <Text style={styles.dropdownItemText}>{bank}</Text>
-                        {selectedBank === bank && (
+                        <Text style={styles.dropdownItemText}>{bank.name}</Text>
+                        {selectedBank === bank.name && (
                           <Ionicons
                             name="checkmark"
                             size={16}
@@ -237,19 +338,70 @@ export default function BankSettingsScreen() {
               </Text>
               <TextInput
                 style={styles.input}
-                placeholder="00000000000"
+                placeholder="0000000000"
                 placeholderTextColor="#bbb"
                 keyboardType="number-pad"
-                maxLength={11}
+                maxLength={10} // Nigerian NUBANs are 10 digits
                 value={accountNumber}
                 onChangeText={setAccountNumber}
               />
 
+              {/* --- NEW: Resolved Account Name Feedback --- */}
+              {(isResolving || resolvedName) && (
+                <View
+                  style={{
+                    marginTop: 8,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: 4,
+                  }}
+                >
+                  {isResolving ? (
+                    <ActivityIndicator
+                      size="small"
+                      color="#3B6B44"
+                      style={{ marginRight: 8 }}
+                    />
+                  ) : (
+                    <Ionicons
+                      name={
+                        resolvedName.includes("Could not")
+                          ? "alert-circle"
+                          : "checkmark-circle"
+                      }
+                      size={16}
+                      color={
+                        resolvedName.includes("Could not")
+                          ? "#d32f2f"
+                          : "#3B6B44"
+                      }
+                      style={{ marginRight: 4 }}
+                    />
+                  )}
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "600",
+                      color: resolvedName.includes("Could not")
+                        ? "#d32f2f"
+                        : "#3B6B44",
+                    }}
+                  >
+                    {isResolving ? "Verifying..." : resolvedName}
+                  </Text>
+                </View>
+              )}
+
               <TouchableOpacity
                 style={[styles.saveBtn, canSave && styles.saveBtnActive]}
                 onPress={handleSave}
+                disabled={!canSave} // Prevent accidental taps while resolving
               >
-                <Text style={styles.saveBtnText}>Save</Text>
+                {saving ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.saveBtnText}>Save</Text>
+                )}
               </TouchableOpacity>
             </TouchableOpacity>
           </TouchableOpacity>
@@ -257,19 +409,6 @@ export default function BankSettingsScreen() {
       </KeyboardAvoidingView>
     </View>
   );
-
-  // rest of the JSX stays the same, just update the Save button:
-  // <TouchableOpacity
-  //   style={[styles.saveBtn, canSave && !saving && styles.saveBtnActive]}
-  //   onPress={handleSave}
-  //   disabled={saving}
-  // >
-  //   {saving ? (
-  //     <ActivityIndicator color="#fff" />
-  //   ) : (
-  //     <Text style={styles.saveBtnText}>Save</Text>
-  //   )}
-  // </TouchableOpacity>;
 }
 
 const styles = StyleSheet.create({

@@ -1,8 +1,10 @@
 import { EmptyOrders } from "@/src/component/orders";
 import { useOrders } from "@/src/lib/context/order-context";
 import { Order } from "@/src/types/order.types";
+import { formatDate, momentsAgo } from "@/src/utils/time-date";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -39,15 +41,6 @@ const titleMap: Record<OrderStatus, string> = {
   completed: "Completed",
 };
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-NG", {
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function OrderListScreen() {
   const router = useRouter();
   const { status } = useLocalSearchParams();
@@ -70,16 +63,14 @@ export default function OrderListScreen() {
   const currentOrders = orderMap[safeStatus];
   const screenTitle = titleMap[safeStatus];
 
-  const handleAccept = (id: string) => {
+  const handleStart = (id: string) => {
     Alert.alert("Order Accepted", "You have accepted this order.");
   };
 
-  const handleReject = (id: string) => {
-    Alert.alert("Reject Order", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Reject", style: "destructive" },
-    ]);
-  };
+  useEffect(() => {
+    console.log(currentOrders);
+    console.log(orders);
+  }, [currentOrders]);
 
   return (
     <View style={styles.container}>
@@ -120,20 +111,22 @@ export default function OrderListScreen() {
                 {/* Date range */}
                 <View style={styles.dateRow}>
                   <Text style={styles.dateText}>
-                    {formatDate(order.pickupDate)}
+                    {momentsAgo(order.createdAt)}
                   </Text>
                   <View style={styles.dashedLine} />
                   <Text style={styles.dateText}>
-                    {formatDate(order.deliveryDate)}
+                    {formatDate(order.scheduledDate)}
                   </Text>
                 </View>
 
                 {/* Items + price */}
                 <View style={styles.metaRow}>
-                  <Text style={styles.itemCount}>{order.itemCount} items</Text>
+                  <Text style={styles.itemCount}>
+                    {order.itemCount} {order.orderType}(s)
+                  </Text>
                   <Text style={styles.price}>
                     NGN{" "}
-                    {order.totalPrice.toLocaleString("en-NG", {
+                    {(order.totalPrice / 100).toLocaleString("en-NG", {
                       minimumFractionDigits: 2,
                     })}
                   </Text>
@@ -145,17 +138,17 @@ export default function OrderListScreen() {
               {/* Actions — only for new orders */}
               {safeStatus === "new" && (
                 <View style={styles.actions}>
-                  <TouchableOpacity
+                  {/* <TouchableOpacity
                     style={styles.rejectBtn}
                     onPress={() => handleReject(order.id)}
                   >
                     <Text style={styles.rejectText}>Reject</Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                   <TouchableOpacity
                     style={styles.acceptBtn}
-                    onPress={() => handleAccept(order.id)}
+                    onPress={() => handleStart(order.id)}
                   >
-                    <Text style={styles.acceptText}>Accept</Text>
+                    <Text style={styles.acceptText}>Start</Text>
                   </TouchableOpacity>
                 </View>
               )}

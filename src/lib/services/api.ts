@@ -1,4 +1,5 @@
 import axios from "axios";
+import { router } from "expo-router"; // or your navigation system
 import * as SecureStore from "expo-secure-store";
 
 export type ApiResponse<T> = {
@@ -34,15 +35,27 @@ api.interceptors.response.use(
     console.log(`✅ AXIOS RESPONSE:`, response.status);
     return response;
   },
-  (error) => {
+  async (error) => {
     const response = error.response?.data;
+    const status = response?.statusCode || error.response?.status;
+
     console.log(`❌ AXIOS ERROR:`, {
       url: error.config?.url,
       code: error.code, //
       message: response?.message || error.message,
-      status: response?.statusCode || error.response?.status,
+      status,
       data: response?.data,
     });
+
+    //Unauthorized
+    if (status === 401) {
+      console.log("🔒 Unauthorized - logging out user");
+
+      // remove token
+      await SecureStore.deleteItemAsync("user_token");
+      await SecureStore.deleteItemAsync("user_data");
+      router.replace("/auth/login");
+    }
     return Promise.reject(error);
   },
 );

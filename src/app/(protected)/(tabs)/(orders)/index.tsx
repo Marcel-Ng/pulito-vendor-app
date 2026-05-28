@@ -23,12 +23,12 @@ export default function HomeScreen() {
   const [isOpen, setIsOpen] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
 
-  function navigateToOrdersList(status: string) {
+  const navigateToOrdersList = (status: string) => {
     router.navigate({
       pathname: "/(protected)/(tabs)/(orders)/order-list",
       params: { status },
     });
-  }
+  };
 
   const orderCategories: OrderCardProps[] = [
     {

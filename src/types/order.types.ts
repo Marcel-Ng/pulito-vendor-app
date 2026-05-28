@@ -3,8 +3,10 @@ export type Order = {
   customerId: string;
   vendorId: string;
   orderNumber: string;
+  scheduledDate: string;
   pickupDate: string;
   deliveryDate: string;
+  orderType: string;
   itemCount: number;
   totalPrice: number;
   status: string;

@@ -10,7 +10,8 @@ import {
   View,
 } from "react-native";
 
-import { BusinessProfile, useVendor } from "@/src/lib/context/vendor-context";
+import { useVendor } from "@/src/lib/context/vendor-context";
+import { BusinessProfile } from "@/src/types/vendor.types";
 
 type Field = keyof BusinessProfile;
 
@@ -34,7 +35,7 @@ export default function BusinessProfileScreen() {
     key: Field;
     label: string;
     icon: string;
-    isAddress?: boolean;
+    isOutlined?: boolean;
   }[] = [
     { key: "businessName", label: "Business Name", icon: "pencil" },
     { key: "phone", label: "Phone Number", icon: "pencil" },
@@ -43,8 +44,9 @@ export default function BusinessProfileScreen() {
       key: "address",
       label: "Address",
       icon: "location-outline",
-      isAddress: true,
+      isOutlined: true,
     },
+    { key: "about", label: "About", icon: "person", isOutlined: true },
   ];
 
   return (
@@ -56,7 +58,7 @@ export default function BusinessProfileScreen() {
         <Text style={styles.title}>Business Profile</Text>
       </View>
 
-      {fields.map(({ key, label, icon, isAddress }) => (
+      {fields.map(({ key, label, icon, isOutlined }) => (
         <View key={key} style={styles.fieldGroup}>
           <Text style={styles.label}>{label}</Text>
           <View style={styles.inputRow}>
@@ -69,7 +71,7 @@ export default function BusinessProfileScreen() {
               autoFocus={editingField === key}
             />
             <TouchableOpacity
-              style={[styles.iconBtn, isAddress && styles.iconBtnOutline]}
+              style={[styles.iconBtn, isOutlined && styles.iconBtnOutline]}
               onPress={() =>
                 editingField === key ? handleSave() : handleEdit(key)
               }
@@ -77,7 +79,7 @@ export default function BusinessProfileScreen() {
               <Ionicons
                 name={icon as any}
                 size={16}
-                color={isAddress ? "#111" : "#fff"}
+                color={isOutlined ? "#111" : "#fff"}
               />
             </TouchableOpacity>
           </View>

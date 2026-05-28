@@ -4,6 +4,7 @@ export type BusinessProfile = {
   phone: string;
   email: string;
   address: string;
+  about: string;
 };
 
 export type Vendor = {

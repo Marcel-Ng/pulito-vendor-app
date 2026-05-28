@@ -11,7 +11,7 @@ export type BankAccount = {
 export type AddBankAccountPayload = {
   bankName: string;
   accountNumber: string;
-  accountName?: string;
+  accountName: string;
 };
 
 export const bankAccountService = {
@@ -30,6 +30,16 @@ export const bankAccountService = {
     vendorId: string,
   ): Promise<ApiResponse<BankAccount[]>> => {
     const response = await api.get(`/vendors/${vendorId}/bank-accounts`);
+    return response.data;
+  },
+
+  async resolveAccount(accountNumber: string, bankCode: string) {
+    const response = await api.get(`/payments/resolve-account-number`, {
+      params: {
+        accountNumber,
+        bankCode,
+      },
+    });
     return response.data;
   },
 };
