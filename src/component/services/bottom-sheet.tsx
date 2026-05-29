@@ -8,6 +8,7 @@ import {
   LAUNDRY_SERVICE_CATEGORIES,
 } from "@/constants/service-categories";
 import { ModalMode, ServiceItem } from "@/src/types/service.types";
+import { VendorType } from "@/src/types/vendor.types";
 import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -34,7 +35,7 @@ export function ItemBottomSheet({
   onReject,
   isSaving,
 }: {
-  vendorType: "Car Wash" | "Laundry";
+  vendorType: VendorType;
   visible: boolean;
   mode: ModalMode;
   initialData?: ServiceItem;
@@ -96,7 +97,7 @@ export function ItemBottomSheet({
                 value={category}
                 placeholder="Select Service"
                 options={
-                  vendorType === "Car Wash"
+                  vendorType === "carwash"
                     ? CARWASH_SERVICE_CATEGORIES
                     : LAUNDRY_SERVICE_CATEGORIES
                 }

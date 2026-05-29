@@ -1,4 +1,4 @@
-import { OrderList, OrderStats } from "@/src/types/order.types";
+import { OrderList, OrderStats, OrderStatus } from "@/src/types/order.types";
 import React, { createContext, useCallback, useContext, useState } from "react";
 import { orderService } from "../services/order.service";
 import { useVendor } from "./vendor-context";
@@ -9,7 +9,9 @@ type OrderContextType = {
   orders: OrderList;
   stats: OrderStats;
   isLoadingOrder: boolean;
+  isUpdatingStatus: boolean;
   refreshOrders: () => Promise<void>;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
 };
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
@@ -43,7 +45,8 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
 
   const [orders, setOrders] = useState<OrderList>(DEFAULT_ORDERS);
   const [stats, setStats] = useState<OrderStats>(DEFAULT_STATS);
-  const [isLoadingOrder, setIsLoadingOrder] = useState(false); // ← false, not true
+  const [isLoadingOrder, setIsLoadingOrder] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const refreshOrders = useCallback(async () => {
     if (!vendorId) return;
@@ -59,9 +62,33 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     }
   }, [vendorId]);
 
+  const updateOrderStatus = useCallback(
+    async (orderId: string, status: OrderStatus) => {
+      if (!vendorId) return;
+      setIsUpdatingStatus(true);
+      try {
+        await orderService.updateOrderStatus(orderId, vendorId, status);
+        await refreshOrders(); // sync the list after status change
+      } catch (err) {
+        console.error("Failed to update order status:", err);
+        throw err; // re-throw so the screen can handle it (show toast, etc.)
+      } finally {
+        setIsUpdatingStatus(false);
+      }
+    },
+    [vendorId, refreshOrders],
+  );
+
   return (
     <OrderContext.Provider
-      value={{ orders, stats, isLoadingOrder, refreshOrders }}
+      value={{
+        orders,
+        stats,
+        isLoadingOrder,
+        isUpdatingStatus,
+        updateOrderStatus,
+        refreshOrders,
+      }}
     >
       {children}
     </OrderContext.Provider>

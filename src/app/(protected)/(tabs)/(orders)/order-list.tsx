@@ -4,10 +4,9 @@ import { Order } from "@/src/types/order.types";
 import { formatDate, momentsAgo } from "@/src/utils/time-date";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -42,9 +41,12 @@ const titleMap: Record<OrderStatus, string> = {
 };
 
 export default function OrderListScreen() {
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
   const router = useRouter();
   const { status } = useLocalSearchParams();
-  const { orders, isLoadingOrder } = useOrders();
+  const { orders, isLoadingOrder, isUpdatingStatus, updateOrderStatus } =
+    useOrders();
 
   const safeStatus: OrderStatus =
     typeof status === "string" && VALID_STATUSES.includes(status as OrderStatus)
@@ -63,8 +65,21 @@ export default function OrderListScreen() {
   const currentOrders = orderMap[safeStatus];
   const screenTitle = titleMap[safeStatus];
 
-  const handleStart = (id: string) => {
-    Alert.alert("Order Accepted", "You have accepted this order.");
+  // const handleStart = (id: string) => {
+  //   Alert.alert("Order Accepted", "You have accepted this order.");
+  // };
+
+  const handleStart = async (orderId: string) => {
+    try {
+      setUpdatingId(orderId);
+      await updateOrderStatus(orderId, "ongoing");
+      router.back();
+    } catch (err) {
+      // show toast or alert
+      console.log(err);
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   useEffect(() => {
@@ -151,7 +166,9 @@ export default function OrderListScreen() {
                     style={styles.acceptBtn}
                     onPress={() => handleStart(order.id)}
                   >
-                    <Text style={styles.acceptText}>Start</Text>
+                    <Text style={styles.acceptText}>
+                      {updatingId === order.id ? "Loading..." : "Start"}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}

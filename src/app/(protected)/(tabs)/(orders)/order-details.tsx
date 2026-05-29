@@ -1,9 +1,9 @@
 import { OrderDetailContent } from "@/src/component/orders/order-details-content";
+import { useOrders } from "@/src/lib/context/order-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,11 +17,21 @@ export default function NewOrderDetailsScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const { updateOrderStatus, isUpdatingStatus } = useOrders();
 
-  const handleAccept = () => {
-    Alert.alert("Order Accepted", "You have accepted this order.", [
-      { text: "OK", onPress: () => router.back() },
-    ]);
+  // const handleAccept = () => {
+  //   Alert.alert("Order Accepted", "You have accepted this order.", [
+  //     { text: "OK", onPress: () => router.back() },
+  //   ]);
+  // };
+
+  const handleAccept = async () => {
+    try {
+      await updateOrderStatus(orderId, "ongoing");
+      router.back();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -69,7 +79,9 @@ export default function NewOrderDetailsScreen() {
         <View style={styles.footerDivider} />
         <View style={styles.actions}>
           <TouchableOpacity style={styles.acceptBtn} onPress={handleAccept}>
-            <Text style={styles.acceptText}>Accept</Text>
+            <Text style={styles.acceptText}>
+              {isUpdatingStatus ? "Loading..." : "Start"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

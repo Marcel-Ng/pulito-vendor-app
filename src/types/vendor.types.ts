@@ -7,18 +7,19 @@ export type BusinessProfile = {
   about: string;
 };
 
+export type VendorType = "carwash" | "laundry";
+
 export type Vendor = {
   id: string;
   name: string;
   balance: number;
   avatarBg: string;
   avatarEmoji: string;
-  vendorType: "Car Wash" | "Laundry";
+  vendorType: VendorType;
   profile: BusinessProfile;
   items: ServiceItem[];
 };
 
-export type VendorType = "carwash" | "laundry";
 export type BalanceResponse = {
   balance: number;
 };

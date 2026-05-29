@@ -6,6 +6,7 @@ import {
   LAUNDRY_SERVICE_CATEGORIES,
 } from "@/constants/service-categories";
 import { ServiceItem } from "@/src/types/service.types";
+import { useEffect } from "react";
 import {
   FlatList,
   StatusBar,
@@ -35,7 +36,7 @@ export default function CategoriesList({
   onOpenCreate,
   onSelectCategory,
 }: {
-  vendorType: "Car Wash" | "Laundry";
+  vendorType: "carwash" | "laundry";
   items: ServiceItem[];
   search: string;
   onSearchChange: (v: string) => void;
@@ -60,6 +61,10 @@ export default function CategoriesList({
         i.name.toLowerCase().includes(search.toLowerCase()),
       ),
   );
+
+  useEffect(() => {
+    console.log(vendorType);
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -97,7 +102,7 @@ export default function CategoriesList({
 
       {/* Category Cards */}
       <FlatList
-        data={vendorType === "Car Wash" ? carWashCategories : laundryCategories}
+        data={vendorType === "carwash" ? carWashCategories : laundryCategories}
         keyExtractor={(c) => c}
         contentContainerStyle={{
           paddingHorizontal: 16,

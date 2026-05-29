@@ -1,4 +1,8 @@
-import { OrderDetailResponse, OrdersResponse } from "@/src/types/order.types";
+import {
+  OrderDetailResponse,
+  OrdersResponse,
+  OrderStatus,
+} from "@/src/types/order.types";
 import api, { ApiResponse } from "./api";
 
 export const orderService = {
@@ -12,5 +16,13 @@ export const orderService = {
   ): Promise<ApiResponse<OrderDetailResponse>> => {
     const response = await api.get(`/orders/details/${orderId}?view=vendor`);
     return response.data;
+  },
+
+  async updateOrderStatus(
+    orderId: string,
+    vendorId: string,
+    status: OrderStatus,
+  ): Promise<void> {
+    await api.patch(`/orders/${orderId}/vendor/${vendorId}/status`, { status });
   },
 };
