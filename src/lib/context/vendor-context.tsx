@@ -35,6 +35,7 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
       phone: v.phone || "",
       email: v.email || "",
       address: v.serviceArea || "", // closest match
+      about: v.about || "",
     },
     items: v.items || [],
   });

@@ -18,6 +18,7 @@ export type Vendor = {
   items: ServiceItem[];
 };
 
+export type VendorType = "carwash" | "laundry";
 export type BalanceResponse = {
   balance: number;
 };

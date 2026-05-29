@@ -1,11 +1,5 @@
 import { OrderList, OrderStats } from "@/src/types/order.types";
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { createContext, useCallback, useContext, useState } from "react";
 import { orderService } from "../services/order.service";
 import { useVendor } from "./vendor-context";
 
@@ -49,7 +43,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
 
   const [orders, setOrders] = useState<OrderList>(DEFAULT_ORDERS);
   const [stats, setStats] = useState<OrderStats>(DEFAULT_STATS);
-  const [isLoadingOrder, setIsLoadingOrder] = useState(true);
+  const [isLoadingOrder, setIsLoadingOrder] = useState(false); // ← false, not true
 
   const refreshOrders = useCallback(async () => {
     if (!vendorId) return;
@@ -64,11 +58,6 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       setIsLoadingOrder(false);
     }
   }, [vendorId]);
-
-  // Refetch when active vendor switches
-  useEffect(() => {
-    refreshOrders();
-  }, [refreshOrders]);
 
   return (
     <OrderContext.Provider

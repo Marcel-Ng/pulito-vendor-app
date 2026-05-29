@@ -101,7 +101,10 @@ export default function OrderListScreen() {
             <View key={order.id} style={styles.card}>
               <TouchableOpacity
                 onPress={() =>
-                  router.navigate("/(protected)/(tabs)/(orders)/order-details")
+                  router.navigate({
+                    pathname: "/(protected)/(tabs)/(orders)/order-details",
+                    params: { orderId: order.id },
+                  })
                 }
               >
                 <Text style={styles.orderNumber}>

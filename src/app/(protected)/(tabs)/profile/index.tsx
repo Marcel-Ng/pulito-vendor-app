@@ -80,22 +80,7 @@ export default function ProfileScreen() {
   const { logOut } = useAuth();
 
   if (!activeVendor) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ fontSize: 16, color: "#9ca3af" }}>
-            No active vendor found.
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <NoVendor />;
   }
 
   const [switcherVisible, setSwitcherVisible] = useState(false);
@@ -261,6 +246,25 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </Modal>
+    </SafeAreaView>
+  );
+}
+
+function NoVendor() {
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ fontSize: 16, color: "#9ca3af" }}>
+          No active vendor found.
+        </Text>
+      </View>
     </SafeAreaView>
   );
 }

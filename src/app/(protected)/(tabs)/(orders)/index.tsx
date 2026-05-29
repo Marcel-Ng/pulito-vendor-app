@@ -3,7 +3,7 @@ import { Icon } from "@/src/component/shared";
 import { useOrders } from "@/src/lib/context/order-context";
 import { useVendor } from "@/src/lib/context/vendor-context";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -18,10 +18,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const { activeVendor } = useVendor();
-  const { stats, isLoadingOrder } = useOrders();
+  const { stats, isLoadingOrder, refreshOrders } = useOrders();
 
   const [isOpen, setIsOpen] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
+
+  useEffect(() => {
+    refreshOrders();
+  }, [refreshOrders]);
 
   const navigateToOrdersList = (status: string) => {
     router.navigate({

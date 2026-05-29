@@ -1,3 +1,5 @@
+import { VendorType } from "./vendor.types";
+
 export type Order = {
   id: string;
   customerId: string;
@@ -36,4 +38,31 @@ export type OrderStats = {
 export type OrdersResponse = {
   orders: OrderList;
   stats: OrderStats;
+};
+
+type OrderItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  pricePerUnit: number;
+};
+
+export type OrderStatus =
+  | "new"
+  | "pickup"
+  | "ongoing"
+  | "ready"
+  | "delivery"
+  | "completed";
+
+export type OrderDetailResponse = {
+  id: string;
+  customerName: string;
+  orderCompletionDate: string;
+  createdAt: string;
+  currentStatus: OrderStatus;
+  serviceType: VendorType;
+  items: OrderItem[];
+  pickupFee: number;
+  deliveryFee: number;
 };
