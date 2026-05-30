@@ -1,4 +1,5 @@
 import { EmptyOrders } from "@/src/component/orders";
+import { OrderListActionButton } from "@/src/component/orders/order-list-action-btn";
 import { useOrders } from "@/src/lib/context/order-context";
 import { Order } from "@/src/types/order.types";
 import { formatDate, momentsAgo } from "@/src/utils/time-date";
@@ -65,17 +66,21 @@ export default function OrderListScreen() {
   const currentOrders = orderMap[safeStatus];
   const screenTitle = titleMap[safeStatus];
 
-  // const handleStart = (id: string) => {
-  //   Alert.alert("Order Accepted", "You have accepted this order.");
-  // };
+  const NEXT_STATUS_MAP: Record<OrderStatus, OrderStatus> = {
+    new: "ongoing",
+    pickup: "ongoing",
+    ongoing: "ready",
+    ready: "delivery",
+    delivery: "completed",
+    completed: "completed",
+  };
 
   const handleStart = async (orderId: string) => {
     try {
       setUpdatingId(orderId);
-      await updateOrderStatus(orderId, "ongoing");
+      await updateOrderStatus(orderId, NEXT_STATUS_MAP[safeStatus]);
       router.back();
     } catch (err) {
-      // show toast or alert
       console.log(err);
     } finally {
       setUpdatingId(null);
@@ -153,25 +158,21 @@ export default function OrderListScreen() {
                 <View style={styles.divider} />
               </TouchableOpacity>
 
-              {/* Actions — only for new orders */}
-              {safeStatus === "new" && (
-                <View style={styles.actions}>
-                  {/* <TouchableOpacity
+              <View style={styles.actions}>
+                {/* <TouchableOpacity
                     style={styles.rejectBtn}
                     onPress={() => handleReject(order.id)}
                   >
                     <Text style={styles.rejectText}>Reject</Text>
                   </TouchableOpacity> */}
-                  <TouchableOpacity
-                    style={styles.acceptBtn}
-                    onPress={() => handleStart(order.id)}
-                  >
-                    <Text style={styles.acceptText}>
-                      {updatingId === order.id ? "Loading..." : "Start"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+
+                <OrderListActionButton
+                  orderId={order.id}
+                  status={safeStatus}
+                  updatingId={updatingId}
+                  onPress={handleStart}
+                />
+              </View>
             </View>
           ))
         )}
@@ -249,12 +250,4 @@ const styles = StyleSheet.create({
     color: "#8B0000",
     textDecorationLine: "underline",
   },
-  acceptBtn: {
-    flex: 1,
-    backgroundColor: "#3B6B44",
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  acceptText: { color: "#fff", fontSize: 16, fontWeight: "600" },
 });

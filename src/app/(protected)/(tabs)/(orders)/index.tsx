@@ -111,7 +111,7 @@ export default function HomeScreen() {
           </View>
           <Text style={styles.walletAmount}>
             {balanceVisible
-              ? `NGN ${(activeVendor?.balance ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`
+              ? `NGN ${((activeVendor?.balance ?? 0) / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`
               : "NGN ••••"}
           </Text>
           <View style={styles.divider} />
