@@ -4,7 +4,6 @@ import api, { ApiResponse } from "./api";
 export const vendorService = {
   getVendorsByUser: async (): Promise<Vendor[]> => {
     const response = await api.get<ApiResponse<Vendor[]>>("/vendors/me");
-    console.log("Fetched vendors:", response.data.data);
     return response.data.data;
   },
 

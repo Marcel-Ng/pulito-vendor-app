@@ -1,4 +1,5 @@
 import { useVendor } from "@/src/lib/context/vendor-context";
+import { useVendorBalance } from "@/src/lib/hooks/vendor-hook";
 import {
   BankAccount,
   bankAccountService,
@@ -37,9 +38,9 @@ export default function RequestPayoutScreen() {
   const { activeVendor } = useVendor();
   const vendorId = activeVendor?.id ?? "";
 
-  const [availableBalance, setAvailableBalance] = useState(
-    activeVendor?.balance ?? 0,
-  );
+  // const [availableBalance, setAvailableBalance] = useState(
+  //   activeVendor?.balance ?? 0,
+  // );
 
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
@@ -50,8 +51,20 @@ export default function RequestPayoutScreen() {
 
   const [amountInput, setAmountInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [availableBalance, setAvailableBalance] = useState<number>(0);
+
+  const { data: vendorBalance } = useVendorBalance();
 
   const amount = parseAmount(amountInput);
+  // const canSubmit =
+  //   selectedAccount !== null && amount > 0 && (amount <= availableBalance?.balance ?? 0);
+
+  // const canSubmit =
+  // selectedAccount !== null &&
+  // amount > 0 &&
+  // !!availableBalance &&
+  // amount <= availableBalance;
+
   const canSubmit =
     selectedAccount !== null && amount > 0 && amount <= availableBalance;
 
@@ -68,6 +81,7 @@ export default function RequestPayoutScreen() {
         setLoadingAccounts(false);
       }
     };
+    setAvailableBalance(vendorBalance?.balance ?? 0);
     if (vendorId) fetch();
   }, [vendorId]);
 
@@ -174,7 +188,9 @@ export default function RequestPayoutScreen() {
               No bank accounts found.{" "}
               <Text
                 style={styles.noAccountLink}
-                onPress={() => router.push("/(protected)/(tabs)/profile")}
+                onPress={() =>
+                  router.push("/(protected)/(tabs)/profile/bank-settings")
+                }
               >
                 Add one in Bank Settings.
               </Text>

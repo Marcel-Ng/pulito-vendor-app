@@ -44,7 +44,6 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       const data = await vendorService.getVendorsByUser();
-      console.log("Fetched vendors:", data);
 
       if (!data || data.length === 0) {
         console.warn("No vendors found for user");

@@ -92,7 +92,7 @@ const PayoutItem = ({
     </View>
     <View style={styles.rowRight}>
       <StatusBadge status={item.status} />
-      <Text style={styles.amount}>{formatNGN(item.amount)}</Text>
+      <Text style={styles.amount}>{formatNGN((item.amount ?? 0) / 100)}</Text>
     </View>
   </View>
 );

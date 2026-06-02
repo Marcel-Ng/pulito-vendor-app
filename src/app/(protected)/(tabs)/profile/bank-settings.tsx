@@ -1,10 +1,12 @@
 import { useVendor } from "@/src/lib/context/vendor-context";
+import { BANKS } from "@/src/lib/data/banks";
 import { bankAccountService } from "@/src/lib/services/bank-account.service";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -15,19 +17,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-const BANKS: { name: string; code: string }[] = [
-  { name: "Access Bank", code: "044" },
-  { name: "First Bank", code: "011" },
-  { name: "GTBank", code: "058" },
-  { name: "UBA", code: "033" },
-  { name: "Zenith Bank", code: "057" },
-  { name: "Fidelity Bank", code: "070" },
-  { name: "Sterling Bank", code: "232" },
-  { name: "Polaris Bank", code: "076" },
-  { name: "Stanbic IBTC", code: "221" },
-  { name: "Wema Bank", code: "035" },
-];
 
 type BankAccount = {
   id: string;
@@ -50,8 +39,18 @@ export default function BankSettingsScreen() {
   const [selectedBankCode, setSelectedBankCode] = useState("");
   const [resolvedName, setResolvedName] = useState("");
   const [isResolving, setIsResolving] = useState(false);
+  const [bankSearcQuery, setBankSearchQuery] = useState("");
+  const [bankSearch, setBankSearch] = useState<any[]>([]);
 
-  const canSave = selectedBank && accountNumber.length >= 10 && !saving;
+  const dropdownAnim = useRef(new Animated.Value(0)).current;
+
+  const canSave =
+    selectedBank &&
+    accountNumber.length >= 10 &&
+    !saving &&
+    !isResolving &&
+    resolvedName &&
+    !resolvedName.includes("Could not");
 
   if (!vendorId) {
     return (
@@ -102,6 +101,14 @@ export default function BankSettingsScreen() {
 
     resolveAccount();
   }, [accountNumber, selectedBankCode]);
+
+  useEffect(() => {
+    Animated.timing(dropdownAnim, {
+      toValue: bankSearch.length > 0 ? 1 : 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [bankSearch.length]);
 
   if (!activeVendor) return <ActivityIndicator style={{ flex: 1 }} />;
 
@@ -188,15 +195,16 @@ export default function BankSettingsScreen() {
       </ScrollView>
 
       {/* Bottom Sheet Modal */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ width: "100%" }}
+
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={handleClose}
       >
-        <Modal
-          visible={modalVisible}
-          animationType="slide"
-          transparent
-          onRequestClose={handleClose}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ width: "100%" }}
         >
           <TouchableOpacity
             style={styles.modalOverlay}
@@ -217,74 +225,6 @@ export default function BankSettingsScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Bank selector
-              <Text style={styles.sheetLabel}>Bank</Text>
-              <TouchableOpacity
-                style={styles.dropdown}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  setBankDropdownOpen((v) => !v);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.dropdownText,
-                    !selectedBank && styles.placeholderText,
-                  ]}
-                >
-                  {selectedBank || "UBA, Zenith etc."}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#666" />
-              </TouchableOpacity>
-
-              {bankDropdownOpen && (
-                <View style={styles.dropdownMenu}>
-                  <ScrollView style={{ maxHeight: 180 }} nestedScrollEnabled>
-                    {BANKS.map((bank) => (
-                      <TouchableOpacity
-                        key={bank.code}
-                        style={styles.dropdownItem}
-                        onPress={() => {
-                          setSelectedBankCode(bank.code);
-                          setBankDropdownOpen(false);
-                        }}
-                      >
-                        <Text style={styles.dropdownItemText}>{bank.name}</Text>
-                        {selectedBank === bank.name && (
-                          <Ionicons
-                            name="checkmark"
-                            size={16}
-                            color="#3B6B44"
-                          />
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
-
-              {/* Account number */}
-              {/* <Text style={[styles.sheetLabel, { marginTop: 20 }]}>
-                Account Number
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="00000000000"
-                placeholderTextColor="#bbb"
-                keyboardType="number-pad"
-                maxLength={11}
-                value={accountNumber}
-                onChangeText={setAccountNumber}
-              />
-
-              <TouchableOpacity
-                style={[styles.saveBtn, canSave && styles.saveBtnActive]}
-                onPress={handleSave}
-              >
-                <Text style={styles.saveBtnText}>Save</Text> */}
-              {/* </TouchableOpacity> */}
-
-              {/* ------------RRRRR---------- */}
               {/* Bank selector */}
               <Text style={styles.sheetLabel}>Bank</Text>
               <TouchableOpacity
@@ -294,27 +234,54 @@ export default function BankSettingsScreen() {
                   setBankDropdownOpen((v) => !v);
                 }}
               >
-                <Text
-                  style={[
-                    styles.dropdownText,
-                    !selectedBank && styles.placeholderText,
-                  ]}
-                >
-                  {selectedBank || "UBA, Zenith etc."}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#666" />
+                <TextInput
+                  value={bankSearcQuery}
+                  onChangeText={(text) => {
+                    setBankSearchQuery(text.trim());
+                    if (bankSearcQuery === "") {
+                      setBankSearch([]);
+                      return;
+                    }
+                    const bs = BANKS.filter((b) =>
+                      b.name
+                        .toLocaleLowerCase()
+                        .includes(bankSearcQuery.toLocaleLowerCase()),
+                    );
+                    setBankSearch(bs);
+                  }}
+                  placeholder={selectedBank || "Bank name"}
+                  style={[styles.dropdownText]}
+                />
+                <Ionicons name="search-outline" size={20} color="#666" />
               </TouchableOpacity>
 
-              {bankDropdownOpen && (
-                <View style={styles.dropdownMenu}>
+              {bankSearch.length > 0 && (
+                <Animated.View
+                  style={[
+                    styles.dropdownMenu,
+                    {
+                      opacity: dropdownAnim,
+                      transform: [
+                        {
+                          translateY: dropdownAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [-8, 0], // slides down 8px as it fades in
+                          }),
+                        },
+                      ],
+                    },
+                  ]}
+                >
                   <ScrollView style={{ maxHeight: 180 }} nestedScrollEnabled>
-                    {BANKS.map((bank) => (
+                    {bankSearch.map((bank) => (
                       <TouchableOpacity
-                        key={bank.code} // Use the unique bank code as the key
+                        key={bank.code} // ← use code not index
                         style={styles.dropdownItem}
                         onPress={() => {
-                          setSelectedBank(bank.name); // Set the display name
-                          setSelectedBankCode(bank.code); // Set the code for the API call
+                          setSelectedBank(bank.name);
+                          setSelectedBankCode(bank.code);
+                          setBankSearchQuery(bank.name);
+                          setBankSearch([]);
                           setBankDropdownOpen(false);
                         }}
                       >
@@ -329,7 +296,7 @@ export default function BankSettingsScreen() {
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
-                </View>
+                </Animated.View>
               )}
 
               {/* Account number */}
@@ -405,8 +372,8 @@ export default function BankSettingsScreen() {
               </TouchableOpacity>
             </TouchableOpacity>
           </TouchableOpacity>
-        </Modal>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -521,7 +488,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   dropdownText: { fontSize: 15, color: "#222", flex: 1 },
-  placeholderText: { color: "#bbb" },
+  // placeholderText: { color: "#bbb" },
   dropdownMenu: {
     borderWidth: 1,
     borderColor: "#e0e0e0",
@@ -558,4 +525,12 @@ const styles = StyleSheet.create({
   },
   saveBtnActive: { backgroundColor: "#3B6B44" },
   saveBtnText: { fontSize: 16, fontWeight: "700", color: "#fff" },
+  // dropdownSearch: {
+  //   borderBottomWidth: 1,
+  //   borderBottomColor: "#f0f0f0",
+  //   paddingHorizontal: 12,
+  //   paddingVertical: 10,
+  //   fontSize: 14,
+  //   color: "#111",
+  // },
 });

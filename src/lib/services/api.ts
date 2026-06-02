@@ -24,15 +24,13 @@ api.interceptors.request.use(async (config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   const fullUrl = `${config.baseURL}${config.url}`;
-  console.log(`🚀 AXIOS REQUEST: [${config.method?.toUpperCase()}] ${fullUrl}`);
-  console.log("payload:", config.data);
+
   return config;
 });
 
 // Log response or error details
 api.interceptors.response.use(
   (response) => {
-    console.log(`✅ AXIOS RESPONSE:`, response.status);
     return response;
   },
   async (error) => {

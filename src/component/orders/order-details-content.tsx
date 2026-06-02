@@ -1,23 +1,57 @@
+import { useOrders } from "@/src/lib/context/order-context";
 import { orderService } from "@/src/lib/services/order.service";
 import { OrderDetailResponse } from "@/src/types/order.types";
+import { VendorType } from "@/src/types/vendor.types";
 import { formatDate } from "@/src/utils/time-date";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { ErrorComponent } from "../shared";
+import { OrderActionButton } from "./order-list-action-btn";
 
 const getOrderTotal = (order: OrderDetailResponse): number => {
   const itemsTotal = order.items.reduce(
     (sum, item) => sum + item.pricePerUnit * item.quantity,
     0,
   );
-  return itemsTotal + order.pickupFee + order.deliveryFee;
+  return itemsTotal;
+  // removed the delivery fee + order.pickupFee + order.deliveryFee;
+};
+
+const SERVICE_ICON: Record<VendorType, keyof typeof Ionicons.glyphMap> = {
+  laundry: "water-outline", // washing/water — not item specific
+  // dry_cleaning: "sparkles-outline", // clean/fresh feel
+  carwash: "car-outline",
+};
+
+const getServiceIcon = (
+  serviceType?: string,
+): keyof typeof Ionicons.glyphMap => {
+  return SERVICE_ICON[serviceType as VendorType] ?? "cube-outline";
 };
 
 export function OrderDetailContent({ orderId }: { orderId: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderDetail, setOrderDetail] = useState<OrderDetailResponse>();
+  const { updateOrderStatus, isUpdatingStatus } = useOrders();
+  const router = useRouter();
+
+  const handleAccept = async () => {
+    try {
+      await updateOrderStatus(orderId, "ongoing");
+      router.back();
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const totalPrice = orderDetail ? getOrderTotal(orderDetail) : 0;
 
@@ -86,37 +120,35 @@ export function OrderDetailContent({ orderId }: { orderId: string }) {
             key={item.id}
             style={[
               styles.itemRow,
-              index === 1 && styles.itemRowHighlighted,
               index < orderDetail.items.length - 1 && styles.itemRowBorder,
             ]}
           >
             <Ionicons
-              name="shirt-outline"
+              name={getServiceIcon(orderDetail.serviceType)}
               size={22}
               color="#F5C518"
               style={styles.itemIcon}
             />
-            <Text
-              style={[
-                styles.itemName,
-                index === 1 && styles.itemNameHighlighted,
-              ]}
-            >
-              {item.name}
-            </Text>
-            <Text
-              style={[styles.itemQty, index === 1 && styles.itemQtyHighlighted]}
-            >
-              ×{item.quantity}
-            </Text>
-            <Text
-              style={[
-                styles.itemPrice,
-                index === 1 && styles.itemPriceHighlighted,
-              ]}
-            >
+
+            {/* Name + price per unit */}
+            <View style={styles.itemInfo}>
+              <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={styles.itemUnitPrice}>
+                NGN{" "}
+                {item.pricePerUnit.toLocaleString("en-NG", {
+                  minimumFractionDigits: 2,
+                })}{" "}
+                / unit
+              </Text>
+            </View>
+
+            {/* Qty */}
+            <Text style={styles.itemQty}>×{item.quantity}</Text>
+
+            {/* Subtotal */}
+            <Text style={styles.itemPrice}>
               NGN{" "}
-              {item.pricePerUnit.toLocaleString("en-NG", {
+              {(item.pricePerUnit * item.quantity).toLocaleString("en-NG", {
                 minimumFractionDigits: 2,
               })}
             </Text>
@@ -130,6 +162,25 @@ export function OrderDetailContent({ orderId }: { orderId: string }) {
         <Text style={styles.totalValue}>
           NGN {totalPrice.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
         </Text>
+      </View>
+
+      {/* Bottom actions */}
+      <View style={styles.footer}>
+        <View style={styles.footerDivider} />
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.acceptBtn} onPress={handleAccept}>
+            <Text style={styles.acceptText}>
+              {isUpdatingStatus ? "Loading..." : "Start"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <OrderActionButton
+          orderId={orderId}
+          status={orderDetail.currentStatus}
+          onPress={handleAccept}
+          isLoading={isUpdatingStatus}
+        />
       </View>
     </>
   );
@@ -181,12 +232,16 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   itemIcon: { width: 26 },
-  itemName: { flex: 1, fontSize: 15, color: "#222" },
+  // itemName: { flex: 1, fontSize: 15, color: "#222" },
   itemNameHighlighted: { color: "#7B5EA7" },
   itemQty: { fontSize: 14, color: "#555", width: 36 },
   itemQtyHighlighted: { color: "#7B5EA7" },
   itemPrice: { fontSize: 15, fontWeight: "700", color: "#111" },
   itemPriceHighlighted: { color: "#7B5EA7" },
+
+  itemInfo: { flex: 1 },
+  itemName: { fontSize: 15, color: "#222", fontWeight: "500" },
+  itemUnitPrice: { fontSize: 12, color: "#999", marginTop: 2 },
 
   // Total
   totalRow: {
@@ -200,4 +255,32 @@ const styles = StyleSheet.create({
   },
   totalLabel: { fontSize: 15, fontWeight: "600", color: "#111" },
   totalValue: { fontSize: 17, fontWeight: "700", color: "#3B6B44" },
+
+  // Footer
+  footer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    paddingBottom: 36,
+  },
+  footerDivider: { height: 1, backgroundColor: "#f0f0f0", marginBottom: 16 },
+  actions: { flexDirection: "row", alignItems: "center", gap: 12 },
+  rejectBtn: { paddingVertical: 4, paddingHorizontal: 8 },
+  rejectText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#8B0000",
+    textDecorationLine: "underline",
+  },
+  acceptBtn: {
+    flex: 1,
+    backgroundColor: "#3B6B44",
+    borderRadius: 10,
+    paddingVertical: 16,
+    alignItems: "center",
+  },
+  acceptText: { color: "#fff", fontSize: 16, fontWeight: "600" },
 });

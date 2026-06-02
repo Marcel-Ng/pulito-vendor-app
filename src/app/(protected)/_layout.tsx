@@ -2,11 +2,13 @@ import { useAuth } from "@/src/lib/context/AuthContext";
 import { OrderProvider } from "@/src/lib/context/order-context";
 import { ServicesProvider } from "@/src/lib/context/services-context";
 import { VendorProvider } from "@/src/lib/context/vendor-context";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Redirect, Stack } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 
 export default function ProtectedLayout() {
   const { isLoggedIn, isLoading } = useAuth();
+  const queryClient = new QueryClient();
 
   if (isLoading) {
     return (
@@ -21,14 +23,16 @@ export default function ProtectedLayout() {
   }
 
   return (
-    <VendorProvider>
-      <OrderProvider>
-        <ServicesProvider>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          </Stack>
-        </ServicesProvider>
-      </OrderProvider>
-    </VendorProvider>
+    <QueryClientProvider client={queryClient}>
+      <VendorProvider>
+        <OrderProvider>
+          <ServicesProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack>
+          </ServicesProvider>
+        </OrderProvider>
+      </VendorProvider>
+    </QueryClientProvider>
   );
 }

@@ -2,6 +2,7 @@ import { OrderCard, OrderCardProps } from "@/src/component/orders";
 import { Icon } from "@/src/component/shared";
 import { useOrders } from "@/src/lib/context/order-context";
 import { useVendor } from "@/src/lib/context/vendor-context";
+import { useVendorBalance } from "@/src/lib/hooks/vendor-hook";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -21,7 +22,6 @@ export default function HomeScreen() {
   const { stats, isLoadingOrder, refreshOrders } = useOrders();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [balanceVisible, setBalanceVisible] = useState(true);
 
   useEffect(() => {
     refreshOrders();
@@ -98,27 +98,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Wallet Card */}
-        <View style={styles.walletCard}>
-          <View style={styles.walletHeader}>
-            <Text style={styles.walletLabel}>Wallet Balance</Text>
-            <TouchableOpacity onPress={() => setBalanceVisible((v) => !v)}>
-              <Icon
-                name={balanceVisible ? "eye" : "eyeClose"}
-                size={24}
-                color="#6b7280"
-              />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.walletAmount}>
-            {balanceVisible
-              ? `NGN ${((activeVendor?.balance ?? 0) / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`
-              : "NGN ••••"}
-          </Text>
-          <View style={styles.divider} />
-          <TouchableOpacity>
-            <Text style={styles.transactionHistory}>Transaction History</Text>
-          </TouchableOpacity>
-        </View>
+        <WalletCard />
 
         {/* Order Grid */}
         {isLoadingOrder ? (
@@ -146,6 +126,44 @@ export default function HomeScreen() {
         )}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function WalletCard() {
+  const [balanceVisible, setBalanceVisible] = useState(true);
+  const { data: balance, isLoading, isError } = useVendorBalance();
+
+  useEffect(() => {
+    console.log(balance);
+  }, [balance]);
+  return (
+    <View style={styles.walletCard}>
+      <View style={styles.walletHeader}>
+        <Text style={styles.walletLabel}>Wallet Balance</Text>
+        <TouchableOpacity onPress={() => setBalanceVisible((v) => !v)}>
+          <Icon
+            name={balanceVisible ? "eye" : "eyeClose"}
+            size={24}
+            color="#6b7280"
+          />
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.walletAmount}>
+        {isLoading ? (
+          <ActivityIndicator />
+        ) : balanceVisible ? (
+          `NGN ${((balance?.balance ?? 0) / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`
+        ) : (
+          "NGN ••••"
+        )}
+      </Text>
+      <View style={styles.divider} />
+      <TouchableOpacity
+        onPress={() => router.navigate("/(protected)/(tabs)/payouts")}
+      >
+        <Text style={styles.transactionHistory}>Transaction History</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 

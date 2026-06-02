@@ -27,7 +27,10 @@ export const payoutService = {
     vendorId: string,
     payload: RequestPayoutPayload,
   ): Promise<ApiResponse<PayoutResponse>> => {
-    const response = await api.post(`/vendors/${vendorId}/payout`, payload);
+    const response = await api.post(
+      `/payouts/${vendorId}/vendor/request-payout`,
+      payload,
+    );
     return response.data;
   },
 };
