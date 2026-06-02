@@ -6,6 +6,7 @@ import {
 } from "@/src/lib/services/bank-account.service";
 import { payoutService } from "@/src/lib/services/payout-service";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -51,19 +52,12 @@ export default function RequestPayoutScreen() {
 
   const [amountInput, setAmountInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [availableBalance, setAvailableBalance] = useState<number>(0);
+  // const [availableBalance, setAvailableBalance] = useState<number>(0);
+  const queryClient = useQueryClient();
 
-  const { data: vendorBalance } = useVendorBalance();
-
+  const { data: vendorBalance, isLoading: loadingBalance } = useVendorBalance();
+  const availableBalance = (vendorBalance?.balance ?? 0) / 100;
   const amount = parseAmount(amountInput);
-  // const canSubmit =
-  //   selectedAccount !== null && amount > 0 && (amount <= availableBalance?.balance ?? 0);
-
-  // const canSubmit =
-  // selectedAccount !== null &&
-  // amount > 0 &&
-  // !!availableBalance &&
-  // amount <= availableBalance;
 
   const canSubmit =
     selectedAccount !== null && amount > 0 && amount <= availableBalance;
@@ -81,26 +75,9 @@ export default function RequestPayoutScreen() {
         setLoadingAccounts(false);
       }
     };
-    setAvailableBalance(vendorBalance?.balance ?? 0);
+    // setAvailableBalance(vendorBalance?.balance ?? 0);
     if (vendorId) fetch();
   }, [vendorId]);
-
-  // update vendor balance
-  // useEffect(() => {
-  //   const fetchBalance = async () => {
-  //     if (!vendorId) return;
-  //     try {
-  //       const res = await payoutService.getBalance(vendorId);
-  //       setAvailableBalance(res.data.balance);
-  //     } catch (err) {
-  //       console.error("Failed to fetch balance", err);
-  //       // falls back to activeVendor.balance already set as initial state
-  //     } finally {
-  //       setLoadingBalance(false);
-  //     }
-  //   };
-  //   fetchBalance();
-  // }, [vendorId]);
 
   const handleUseFullBalance = () => {
     setAmountInput(availableBalance.toString());
@@ -111,8 +88,12 @@ export default function RequestPayoutScreen() {
     setSubmitting(true);
     try {
       await payoutService.requestPayout(vendorId, {
-        amount,
+        amount: Math.round(amount * 100), // convert to kobo
         bankAccountId: selectedAccount.id,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["vendorBalance", vendorId],
       });
       Alert.alert("Success", "Payout request submitted successfully.", [
         { text: "Done", onPress: () => router.back() },
@@ -145,9 +126,13 @@ export default function RequestPayoutScreen() {
         {/* Balance card */}
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Available Balance</Text>
-          <Text style={styles.balanceAmount}>
-            {formatNGN(availableBalance)}
-          </Text>
+          {loadingBalance ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.balanceAmount}>
+              {formatNGN(availableBalance)}
+            </Text>
+          )}
         </View>
 
         {/* Amount */}

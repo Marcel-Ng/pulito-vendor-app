@@ -1,7 +1,7 @@
 import { EmptyOrders } from "@/src/component/orders";
-import { OrderListActionButton } from "@/src/component/orders/order-list-action-btn";
+import { OrderActionButton } from "@/src/component/orders/order-list-action-btn";
 import { useOrders } from "@/src/lib/context/order-context";
-import { Order } from "@/src/types/order.types";
+import { NEXT_STATUS_MAP, Order } from "@/src/types/order.types";
 import { formatDate, momentsAgo } from "@/src/utils/time-date";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -65,15 +65,6 @@ export default function OrderListScreen() {
 
   const currentOrders = orderMap[safeStatus];
   const screenTitle = titleMap[safeStatus];
-
-  const NEXT_STATUS_MAP: Record<OrderStatus, OrderStatus> = {
-    new: "ongoing",
-    pickup: "ongoing",
-    ongoing: "ready",
-    ready: "delivery",
-    delivery: "completed",
-    completed: "completed",
-  };
 
   const handleStart = async (orderId: string) => {
     try {
@@ -166,10 +157,10 @@ export default function OrderListScreen() {
                     <Text style={styles.rejectText}>Reject</Text>
                   </TouchableOpacity> */}
 
-                <OrderListActionButton
+                <OrderActionButton
                   orderId={order.id}
                   status={safeStatus}
-                  updatingId={updatingId}
+                  isLoading={updatingId === order.id}
                   onPress={handleStart}
                 />
               </View>

@@ -133,9 +133,13 @@ function WalletCard() {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const { data: balance, isLoading, isError } = useVendorBalance();
 
-  useEffect(() => {
-    console.log(balance);
-  }, [balance]);
+  // useEffect(() => {
+  //   console.log("loading balance", isLoading);
+  // }, [isLoading]);
+
+  // useEffect(() => {
+  //   console.log(balance);
+  // }, [balance]);
   return (
     <View style={styles.walletCard}>
       <View style={styles.walletHeader}>

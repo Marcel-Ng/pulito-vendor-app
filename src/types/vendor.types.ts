@@ -12,7 +12,7 @@ export type VendorType = "carwash" | "laundry";
 export type Vendor = {
   id: string;
   name: string;
-  balance: number;
+  // balance: number;
   avatarBg: string;
   avatarEmoji: string;
   vendorType: VendorType;

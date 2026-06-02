@@ -1,18 +1,18 @@
 import { useOrders } from "@/src/lib/context/order-context";
+import { useVendor } from "@/src/lib/context/vendor-context";
 import { orderService } from "@/src/lib/services/order.service";
-import { OrderDetailResponse } from "@/src/types/order.types";
+import {
+  NEXT_STATUS_MAP,
+  OrderDetailResponse,
+  OrderStatus,
+} from "@/src/types/order.types";
 import { VendorType } from "@/src/types/vendor.types";
 import { formatDate } from "@/src/utils/time-date";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { ErrorComponent } from "../shared";
 import { OrderActionButton } from "./order-list-action-btn";
 
@@ -43,10 +43,21 @@ export function OrderDetailContent({ orderId }: { orderId: string }) {
   const [orderDetail, setOrderDetail] = useState<OrderDetailResponse>();
   const { updateOrderStatus, isUpdatingStatus } = useOrders();
   const router = useRouter();
+  const { activeVendor } = useVendor();
+  const vendorId = activeVendor?.id ?? "";
 
-  const handleAccept = async () => {
+  const queryClient = useQueryClient();
+
+  const handleAccept = async (status: OrderStatus) => {
+    console.log("Updating order status to:", status);
     try {
-      await updateOrderStatus(orderId, "ongoing");
+      const nextStatus = NEXT_STATUS_MAP[status];
+      await updateOrderStatus(orderId, nextStatus);
+      if (nextStatus === "completed") {
+        queryClient.invalidateQueries({
+          queryKey: ["vendorBalance", vendorId],
+        });
+      }
       router.back();
     } catch (err) {
       console.log(err);
@@ -167,18 +178,18 @@ export function OrderDetailContent({ orderId }: { orderId: string }) {
       {/* Bottom actions */}
       <View style={styles.footer}>
         <View style={styles.footerDivider} />
-        <View style={styles.actions}>
+        {/* <View style={styles.actions}>
           <TouchableOpacity style={styles.acceptBtn} onPress={handleAccept}>
             <Text style={styles.acceptText}>
               {isUpdatingStatus ? "Loading..." : "Start"}
             </Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         <OrderActionButton
           orderId={orderId}
           status={orderDetail.currentStatus}
-          onPress={handleAccept}
+          onPress={() => handleAccept(orderDetail.currentStatus)}
           isLoading={isUpdatingStatus}
         />
       </View>

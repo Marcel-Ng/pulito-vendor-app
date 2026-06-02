@@ -26,7 +26,7 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
   const mapApiToVendor = (v: any): Vendor => ({
     id: v.id,
     name: v.businessName, // was v.name
-    balance: v.balance ?? 0,
+    // balance: v.balance ?? 0,
     avatarBg: "#3B82F6",
     avatarEmoji: "🏪",
     vendorType: v.type, // was v.vendorType

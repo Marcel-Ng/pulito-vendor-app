@@ -66,3 +66,12 @@ export type OrderDetailResponse = {
   pickupFee: number;
   deliveryFee: number;
 };
+
+export const NEXT_STATUS_MAP: Record<OrderStatus, OrderStatus> = {
+  new: "ongoing",
+  pickup: "ongoing",
+  ongoing: "ready",
+  ready: "delivery",
+  delivery: "completed",
+  completed: "completed",
+};
