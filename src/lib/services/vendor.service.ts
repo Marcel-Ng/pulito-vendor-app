@@ -13,4 +13,11 @@ export const vendorService = {
     const response = await api.get(`/vendors/${vendorId}/balance`);
     return response.data;
   },
+
+  updateBusinessProfile: async (
+    vendorId: string,
+    profileData: Partial<Vendor["profile"]>,
+  ): Promise<void> => {
+    await api.put(`/vendors/${vendorId}`, profileData);
+  },
 };

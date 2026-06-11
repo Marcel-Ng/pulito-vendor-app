@@ -49,9 +49,9 @@ export function OrderDetailContent({ orderId }: { orderId: string }) {
   const queryClient = useQueryClient();
 
   const handleAccept = async (status: OrderStatus) => {
-    console.log("Updating order status to:", status);
     try {
       const nextStatus = NEXT_STATUS_MAP[status];
+
       await updateOrderStatus(orderId, nextStatus);
       if (nextStatus === "completed") {
         queryClient.invalidateQueries({
@@ -178,14 +178,6 @@ export function OrderDetailContent({ orderId }: { orderId: string }) {
       {/* Bottom actions */}
       <View style={styles.footer}>
         <View style={styles.footerDivider} />
-        {/* <View style={styles.actions}>
-          <TouchableOpacity style={styles.acceptBtn} onPress={handleAccept}>
-            <Text style={styles.acceptText}>
-              {isUpdatingStatus ? "Loading..." : "Start"}
-            </Text>
-          </TouchableOpacity>
-        </View> */}
-
         <OrderActionButton
           orderId={orderId}
           status={orderDetail.currentStatus}
@@ -278,20 +270,4 @@ const styles = StyleSheet.create({
     paddingBottom: 36,
   },
   footerDivider: { height: 1, backgroundColor: "#f0f0f0", marginBottom: 16 },
-  actions: { flexDirection: "row", alignItems: "center", gap: 12 },
-  rejectBtn: { paddingVertical: 4, paddingHorizontal: 8 },
-  rejectText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#8B0000",
-    textDecorationLine: "underline",
-  },
-  acceptBtn: {
-    flex: 1,
-    backgroundColor: "#3B6B44",
-    borderRadius: 10,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  acceptText: { color: "#fff", fontSize: 16, fontWeight: "600" },
 });

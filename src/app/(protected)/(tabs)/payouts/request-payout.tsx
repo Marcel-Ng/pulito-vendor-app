@@ -12,8 +12,6 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -108,155 +106,145 @@ export default function RequestPayoutScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    <ScrollView
+      contentContainerStyle={styles.inner}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
     >
-      <ScrollView
-        contentContainerStyle={styles.inner}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color="#111" />
-          <Text style={styles.backText}>Request Payout</Text>
-        </TouchableOpacity>
+      {/* Header */}
+      <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <Ionicons name="arrow-back" size={22} color="#111" />
+        <Text style={styles.backText}>Request Payout</Text>
+      </TouchableOpacity>
 
-        {/* Balance card */}
-        <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Available Balance</Text>
-          {loadingBalance ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.balanceAmount}>
-              {formatNGN(availableBalance)}
-            </Text>
-          )}
-        </View>
-
-        {/* Amount */}
-        <Text style={styles.label}>Amount</Text>
-        <View style={styles.amountRow}>
-          <View style={styles.amountInputWrapper}>
-            <Text style={styles.currencyPrefix}>NGN</Text>
-            <TextInput
-              style={styles.amountInput}
-              placeholder="0.00"
-              placeholderTextColor="#bbb"
-              keyboardType="numeric"
-              value={amountInput}
-              onChangeText={setAmountInput}
-            />
-          </View>
-          <TouchableOpacity
-            style={styles.maxBtn}
-            onPress={handleUseFullBalance}
-          >
-            <Text style={styles.maxBtnText}>Use Max</Text>
-          </TouchableOpacity>
-        </View>
-        {amount > availableBalance && (
-          <Text style={styles.errorText}>Amount exceeds available balance</Text>
-        )}
-
-        {/* Bank account selector */}
-        <Text style={[styles.label, { marginTop: 24 }]}>
-          Pay to Bank Account
-        </Text>
-
-        {loadingAccounts ? (
-          <ActivityIndicator color="#3B6B44" style={{ marginTop: 8 }} />
-        ) : bankAccounts.length === 0 ? (
-          <View style={styles.noAccountBox}>
-            <Text style={styles.noAccountText}>
-              No bank accounts found.{" "}
-              <Text
-                style={styles.noAccountLink}
-                onPress={() =>
-                  router.push("/(protected)/(tabs)/profile/bank-settings")
-                }
-              >
-                Add one in Bank Settings.
-              </Text>
-            </Text>
-          </View>
+      {/* Balance card */}
+      <View style={styles.balanceCard}>
+        <Text style={styles.balanceLabel}>Available Balance</Text>
+        {loadingBalance ? (
+          <ActivityIndicator color="#fff" />
         ) : (
-          <>
-            <TouchableOpacity
-              style={styles.dropdown}
-              onPress={() => setAccountDropdownOpen((v) => !v)}
+          <Text style={styles.balanceAmount}>
+            {formatNGN(availableBalance)}
+          </Text>
+        )}
+      </View>
+
+      {/* Amount */}
+      <Text style={styles.label}>Amount</Text>
+      <View style={styles.amountRow}>
+        <View style={styles.amountInputWrapper}>
+          <Text style={styles.currencyPrefix}>NGN</Text>
+          <TextInput
+            style={styles.amountInput}
+            placeholder="0.00"
+            placeholderTextColor="#bbb"
+            keyboardType="numeric"
+            value={amountInput}
+            onChangeText={setAmountInput}
+          />
+        </View>
+        <TouchableOpacity style={styles.maxBtn} onPress={handleUseFullBalance}>
+          <Text style={styles.maxBtnText}>Use Max</Text>
+        </TouchableOpacity>
+      </View>
+      {amount > availableBalance && (
+        <Text style={styles.errorText}>Amount exceeds available balance</Text>
+      )}
+
+      {/* Bank account selector */}
+      <Text style={[styles.label, { marginTop: 24 }]}>Pay to Bank Account</Text>
+
+      {loadingAccounts ? (
+        <ActivityIndicator color="#3B6B44" style={{ marginTop: 8 }} />
+      ) : bankAccounts.length === 0 ? (
+        <View style={styles.noAccountBox}>
+          <Text style={styles.noAccountText}>
+            No bank accounts found.{" "}
+            <Text
+              style={styles.noAccountLink}
+              onPress={() =>
+                router.push("/(protected)/(tabs)/profile/bank-settings")
+              }
             >
-              <View style={styles.dropdownContent}>
-                {selectedAccount ? (
+              Add one in Bank Settings.
+            </Text>
+          </Text>
+        </View>
+      ) : (
+        <>
+          <TouchableOpacity
+            style={styles.dropdown}
+            onPress={() => setAccountDropdownOpen((v) => !v)}
+          >
+            <View style={styles.dropdownContent}>
+              {selectedAccount ? (
+                <View>
+                  <Text style={styles.dropdownBankName}>
+                    {selectedAccount.bankName}
+                  </Text>
+                  <Text style={styles.dropdownAccountNumber}>
+                    {selectedAccount.accountNumber}
+                    {selectedAccount.accountName
+                      ? ` · ${selectedAccount.accountName}`
+                      : ""}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.dropdownPlaceholder}>
+                  Select bank account
+                </Text>
+              )}
+            </View>
+            <Ionicons
+              name={accountDropdownOpen ? "chevron-up" : "chevron-down"}
+              size={20}
+              color="#666"
+            />
+          </TouchableOpacity>
+
+          {accountDropdownOpen && (
+            <View style={styles.dropdownMenu}>
+              {bankAccounts.map((account) => (
+                <TouchableOpacity
+                  key={account.id}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setSelectedAccount(account);
+                    setAccountDropdownOpen(false);
+                  }}
+                >
                   <View>
                     <Text style={styles.dropdownBankName}>
-                      {selectedAccount.bankName}
+                      {account.bankName}
                     </Text>
                     <Text style={styles.dropdownAccountNumber}>
-                      {selectedAccount.accountNumber}
-                      {selectedAccount.accountName
-                        ? ` · ${selectedAccount.accountName}`
-                        : ""}
+                      {account.accountNumber}
+                      {account.accountName ? ` · ${account.accountName}` : ""}
                     </Text>
                   </View>
-                ) : (
-                  <Text style={styles.dropdownPlaceholder}>
-                    Select bank account
-                  </Text>
-                )}
-              </View>
-              <Ionicons
-                name={accountDropdownOpen ? "chevron-up" : "chevron-down"}
-                size={20}
-                color="#666"
-              />
-            </TouchableOpacity>
-
-            {accountDropdownOpen && (
-              <View style={styles.dropdownMenu}>
-                {bankAccounts.map((account) => (
-                  <TouchableOpacity
-                    key={account.id}
-                    style={styles.dropdownItem}
-                    onPress={() => {
-                      setSelectedAccount(account);
-                      setAccountDropdownOpen(false);
-                    }}
-                  >
-                    <View>
-                      <Text style={styles.dropdownBankName}>
-                        {account.bankName}
-                      </Text>
-                      <Text style={styles.dropdownAccountNumber}>
-                        {account.accountNumber}
-                        {account.accountName ? ` · ${account.accountName}` : ""}
-                      </Text>
-                    </View>
-                    {selectedAccount?.id === account.id && (
-                      <Ionicons name="checkmark" size={18} color="#3B6B44" />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </>
-        )}
-
-        {/* Submit */}
-        <TouchableOpacity
-          style={[styles.btn, canSubmit && styles.btnActive, { marginTop: 40 }]}
-          onPress={handleSubmit}
-          disabled={!canSubmit || submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.btnText}>Request Payout</Text>
+                  {selectedAccount?.id === account.id && (
+                    <Ionicons name="checkmark" size={18} color="#3B6B44" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
           )}
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </>
+      )}
+
+      {/* Submit */}
+      <TouchableOpacity
+        style={[styles.btn, canSubmit && styles.btnActive, { marginTop: 40 }]}
+        onPress={handleSubmit}
+        disabled={!canSubmit || submitting}
+      >
+        {submitting ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.btnText}>Request Payout</Text>
+        )}
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 

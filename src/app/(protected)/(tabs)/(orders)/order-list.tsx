@@ -1,11 +1,13 @@
 import { EmptyOrders } from "@/src/component/orders";
 import { OrderActionButton } from "@/src/component/orders/order-list-action-btn";
 import { useOrders } from "@/src/lib/context/order-context";
+import { useVendor } from "@/src/lib/context/vendor-context";
 import { NEXT_STATUS_MAP, Order } from "@/src/types/order.types";
 import { formatDate, momentsAgo } from "@/src/utils/time-date";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -48,7 +50,11 @@ export default function OrderListScreen() {
   const { status } = useLocalSearchParams();
   const { orders, isLoadingOrder, isUpdatingStatus, updateOrderStatus } =
     useOrders();
+  const { activeVendor } = useVendor();
 
+  const vendorId = activeVendor?.id ?? "";
+
+  const queryClient = useQueryClient();
   const safeStatus: OrderStatus =
     typeof status === "string" && VALID_STATUSES.includes(status as OrderStatus)
       ? (status as OrderStatus)
@@ -67,9 +73,16 @@ export default function OrderListScreen() {
   const screenTitle = titleMap[safeStatus];
 
   const handleStart = async (orderId: string) => {
+    const nextStatus = NEXT_STATUS_MAP[safeStatus];
+
     try {
       setUpdatingId(orderId);
-      await updateOrderStatus(orderId, NEXT_STATUS_MAP[safeStatus]);
+      await updateOrderStatus(orderId, nextStatus);
+      if (nextStatus === "completed") {
+        queryClient.invalidateQueries({
+          queryKey: ["vendorBalance", vendorId],
+        });
+      }
       router.back();
     } catch (err) {
       console.log(err);
@@ -77,11 +90,6 @@ export default function OrderListScreen() {
       setUpdatingId(null);
     }
   };
-
-  useEffect(() => {
-    console.log(currentOrders);
-    console.log(orders);
-  }, [currentOrders]);
 
   return (
     <View style={styles.container}>

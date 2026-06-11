@@ -3,6 +3,7 @@ import { useVendor } from "../context/vendor-context";
 import { vendorService } from "../services/vendor.service";
 
 async function fetchBalance(vendorId: string) {
+  console.log("Fetching balance for vendor:", vendorId);
   const data = await vendorService.getBalance(vendorId);
   return data.data;
 }
