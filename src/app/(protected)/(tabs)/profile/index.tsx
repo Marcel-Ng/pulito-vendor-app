@@ -77,7 +77,8 @@ const MenuRow = ({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 export default function ProfileScreen() {
   const { vendors, activeVendor, setActiveVendor } = useVendor();
-  const { logOut } = useAuth();
+  const { logOut, deleteAccount } = useAuth();
+  const [deleting, setDeleting] = useState(false);
 
   if (!activeVendor) {
     return <NoVendor />;
@@ -101,6 +102,49 @@ export default function ProfileScreen() {
   const handleSwitch = (vendor: Vendor) => {
     setActiveVendor(vendor);
     setSwitcherVisible(false);
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "This will permanently delete your account and all associated data. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            // second confirmation
+            Alert.alert(
+              "Are you absolutely sure?",
+              "Your account, vendors, and all data will be permanently removed.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Yes, Delete My Account",
+                  style: "destructive",
+                  onPress: confirmDeleteAccount,
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
+  };
+
+  const confirmDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await deleteAccount();
+    } catch (err: any) {
+      const message =
+        err.response?.data?.message ||
+        "Failed to delete account. Please try again.";
+      Alert.alert("Error", message);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -178,6 +222,14 @@ export default function ProfileScreen() {
         {/* Logout */}
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+
+        {/* delete account */}
+        <TouchableOpacity
+          onPress={handleDeleteAccount}
+          style={styles.deleteBtn}
+        >
+          <Text style={styles.deleteText}>Delete Account</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -385,4 +437,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cancelText: { fontSize: 16, fontWeight: "600", color: "#007AFF" },
+
+  // delete account
+  deleteBtn: {
+    alignItems: "center",
+    paddingVertical: 12,
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  deleteText: {
+    fontSize: 14,
+    color: "#9ca3af", // muted — not screaming red
+    textDecorationLine: "underline",
+  },
 });

@@ -19,6 +19,7 @@ type AuthState = {
   isLoading: boolean;
   logIn: (email: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -86,6 +87,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
     router.replace("/auth/login");
   };
 
+  // auth-context.tsx
+  const deleteAccount = async () => {
+    await authService.deleteAccount();
+    await SecureStore.deleteItemAsync("user_token");
+    await SecureStore.deleteItemAsync("user_data");
+    setUser(null);
+    router.replace("/auth/login");
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -94,6 +104,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         isLoading,
         logIn,
         logOut,
+        deleteAccount,
       }}
     >
       {children}

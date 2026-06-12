@@ -45,4 +45,8 @@ export const authService = {
     });
     return response.data;
   },
+
+  async deleteAccount(): Promise<void> {
+    await api.delete("/users/delete");
+  },
 };

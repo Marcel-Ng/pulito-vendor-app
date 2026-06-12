@@ -1,4 +1,5 @@
 import { BackButton } from "./buttons/back-button";
 import ErrorComponent from "./error";
 import { Icon } from "./icons";
-export { BackButton, ErrorComponent, Icon };
+import { Loading } from "./loading";
+export { BackButton, ErrorComponent, Icon, Loading };
