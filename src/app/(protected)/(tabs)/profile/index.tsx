@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -16,7 +17,9 @@ import { useAuth } from "@/src/lib/context/AuthContext";
 import { useVendor } from "@/src/lib/context/vendor-context";
 import { Vendor } from "@/src/types/vendor.types";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
+import { Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // ─── Chevron right ────────────────────────────────────────────────────────────
@@ -77,12 +80,43 @@ const MenuRow = ({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 export default function ProfileScreen() {
   const { vendors, activeVendor, setActiveVendor } = useVendor();
-  const { logOut, deleteAccount } = useAuth();
+  const { logOut, deleteAccount, user } = useAuth();
   const [deleting, setDeleting] = useState(false);
+  const [addBusinessVisible, setAddBusinessVisible] = useState(false);
 
   if (!activeVendor) {
     return <NoVendor />;
   }
+
+  const handleAddBusiness = async () => {
+    const to = "support@getpulito.com";
+    const subject = encodeURIComponent("add my new business");
+    const body = encodeURIComponent(
+      `Hi Pulito Support,\n\nI would like to add a new business to my account.\n\nAccount email: ${user?.email ?? ""}`,
+    );
+    const url = `mailto:${to}?subject=${subject}&body=${body}`;
+
+    const canOpen = await Linking.canOpenURL(url);
+
+    if (canOpen) {
+      Linking.openURL(url);
+    } else {
+      // fallback — show the email so they can copy it manually
+      Alert.alert(
+        "No Mail App Found",
+        "Please send an email to support@getpulito.com with the subject 'add my new business'.",
+        [
+          {
+            text: "Copy Email",
+            onPress: () => {
+              Clipboard.setStringAsync("support@getpulito.com");
+            },
+          },
+          { text: "OK", style: "cancel" },
+        ],
+      );
+    }
+  };
 
   const [switcherVisible, setSwitcherVisible] = useState(false);
 
@@ -147,6 +181,10 @@ export default function ProfileScreen() {
     }
   };
 
+  useEffect(() => {
+    console.log("Active vendor changed:", activeVendor);
+  }, [activeVendor]);
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
@@ -161,14 +199,23 @@ export default function ProfileScreen() {
           activeOpacity={0.8}
         >
           <View style={styles.avatarContainer}>
-            <View
+            {/* <View
               style={[
                 styles.avatarPlaceholder,
                 { backgroundColor: activeVendor.avatarBg },
               ]}
             >
               <Text style={styles.avatarEmoji}>{activeVendor.avatarEmoji}</Text>
-            </View>
+            </View> */}
+            <Image
+              source={{ uri: activeVendor.profile.imageUrl }}
+              style={{
+                width: 90,
+                height: 90,
+                borderRadius: 45,
+                // position: "absolute",
+              }}
+            />
           </View>
           <View style={styles.nameRow}>
             <Text style={styles.businessName}>{activeVendor.name}</Text>
@@ -202,13 +249,13 @@ export default function ProfileScreen() {
           <MenuRow
             icon="star"
             label="Reviews"
-            onPress={() => {}}
+            onPress={() => router.navigate("/profile/review")}
             showDivider={false}
           />
         </View>
 
-        {/* Personal Section */}
-        <Text style={styles.sectionTitle}>Personal</Text>
+        {/* Personal Section, re-add when I find what to add there */}
+        {/* <Text style={styles.sectionTitle}>Personal</Text>
         <View style={styles.section}>
           <MenuRow icon="person" label="Personal Profile" onPress={() => {}} />
           <MenuRow
@@ -217,7 +264,7 @@ export default function ProfileScreen() {
             onPress={() => {}}
             showDivider={false}
           />
-        </View>
+        </View> */}
 
         {/* Logout */}
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
@@ -282,7 +329,14 @@ export default function ProfileScreen() {
 
           <View style={styles.sheetDivider} />
 
-          <TouchableOpacity style={styles.vendorRow} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.vendorRow}
+            activeOpacity={0.7}
+            onPress={() => {
+              setSwitcherVisible(false); // close switcher
+              setTimeout(() => setAddBusinessVisible(true), 300); // wait for dismiss animation
+            }}
+          >
             <View style={styles.addIconCircle}>
               <MaterialCommunityIcons name="plus" size={22} color="#007AFF" />
             </View>
@@ -293,6 +347,73 @@ export default function ProfileScreen() {
             style={styles.cancelBtn}
             onPress={() => setSwitcherVisible(false)}
             activeOpacity={0.7}
+          >
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* add a new business modal */}
+      <Modal
+        visible={addBusinessVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setAddBusinessVisible(false)}
+      >
+        <Pressable
+          style={styles.backdrop}
+          onPress={() => setAddBusinessVisible(false)}
+        />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+
+          <View
+            style={{
+              alignItems: "center",
+              paddingHorizontal: 24,
+              paddingBottom: 8,
+            }}
+          >
+            <View style={styles.addBizIconCircle}>
+              <MaterialCommunityIcons
+                name="store-plus-outline"
+                size={32}
+                color="#007AFF"
+              />
+            </View>
+
+            <Text style={styles.addBizTitle}>Add Another Business</Text>
+            <Text style={styles.addBizBody}>
+              To add a new business to your Pulito account, send us an email and
+              our team will get it set up for you.
+            </Text>
+
+            <View style={styles.addBizEmailBox}>
+              <MaterialCommunityIcons
+                name="email-outline"
+                size={16}
+                color="#9ca3af"
+              />
+              <Text style={styles.addBizEmailText}>support@getpulito.com</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.addBizBtn}
+            onPress={handleAddBusiness}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons
+              name="send-outline"
+              size={18}
+              color="#fff"
+            />
+            <Text style={styles.addBizBtnText}>Send Email</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.cancelBtn}
+            onPress={() => setAddBusinessVisible(false)}
           >
             <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
@@ -449,5 +570,62 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#9ca3af", // muted — not screaming red
     textDecorationLine: "underline",
+  },
+
+  // add business modal
+  addBizIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  addBizTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  addBizBody: {
+    fontSize: 14,
+    color: "#6b7280",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  addBizEmailBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginBottom: 24,
+  },
+  addBizEmailText: {
+    fontSize: 14,
+    color: "#374151",
+    fontWeight: "500",
+  },
+  addBizBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#007AFF",
+    borderRadius: 14,
+    marginHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 12,
+  },
+  addBizBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

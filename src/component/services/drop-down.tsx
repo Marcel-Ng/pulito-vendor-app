@@ -9,11 +9,13 @@ export function Dropdown({
   placeholder,
   options,
   onSelect,
+  disabled = false,
 }: {
   value: string;
   placeholder: string;
   options: string[];
   onSelect: (v: string) => void;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -94,4 +96,8 @@ const styles = StyleSheet.create({
   },
   dropdownOptionSelected: { backgroundColor: GREEN_LIGHT },
   dropdownOptionText: { fontSize: 15, color: "#333333" },
+  dropdownDisabled: {
+    opacity: 0.45,
+    backgroundColor: "#f0f0f0",
+  },
 });

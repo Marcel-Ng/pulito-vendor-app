@@ -1,5 +1,6 @@
 import { OrderList, OrderStats, OrderStatus } from "@/src/types/order.types";
 import React, { createContext, useCallback, useContext, useState } from "react";
+import Toast from "react-native-toast-message";
 import { orderService } from "../services/order.service";
 import { useVendor } from "./vendor-context";
 
@@ -56,6 +57,11 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       setOrders(res.data.orders);
       setStats(res.data.stats);
     } catch (err) {
+      Toast.show({
+        type: "error",
+        text1: "Error getting vendors orders",
+        text2: "Could not get orders try again later",
+      });
       console.error("Failed to fetch orders:", err);
     } finally {
       setIsLoadingOrder(false);

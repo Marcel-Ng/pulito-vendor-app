@@ -1,8 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -27,6 +30,46 @@ export default function BusinessProfileScreen() {
   const [isDirty, setIsDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedOnce, setSavedOnce] = useState(false);
+
+  // add to state
+  const [imageUri, setImageUri] = useState<string | null>(
+    activeVendor?.profile?.imageUrl ?? null,
+  );
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  // handler
+  const handlePickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(
+        "Permission required",
+        "Please allow access to your photo library.",
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1], // square crop
+      quality: 0.8,
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+
+    const uri = result.assets[0].uri;
+    setImageUri(uri); // optimistic update
+    setUploadingImage(true);
+    try {
+      await vendorService.updateBusinessImage(activeVendor!.id, uri);
+    } catch (err) {
+      console.error("Failed to upload image:", err);
+      setImageUri(activeVendor?.profile?.imageUrl ?? null); // revert on fail
+      Alert.alert("Error", "Failed to update profile image. Please try again.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleChange = (field: Field, text: string) => {
     setForm((f) => ({ ...f, [field]: text }));
@@ -90,6 +133,35 @@ export default function BusinessProfileScreen() {
             <Ionicons name="arrow-back" size={22} color="#111" />
           </TouchableOpacity>
           <Text style={styles.title}>Business Profile</Text>
+        </View>
+
+        {/* Avatar */}
+        <View style={styles.avatarWrapper}>
+          <TouchableOpacity onPress={handlePickImage} disabled={uploadingImage}>
+            <View style={styles.avatar}>
+              {imageUri ? (
+                <Image source={{ uri: imageUri }} style={styles.avatarImage} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Ionicons
+                    name="storefront-outline"
+                    size={36}
+                    color="#3B6B44"
+                  />
+                </View>
+              )}
+
+              {/* Overlay */}
+              <View style={styles.avatarOverlay}>
+                {uploadingImage ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Ionicons name="camera" size={18} color="#fff" />
+                )}
+              </View>
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.avatarHint}>Tap to update photo</Text>
         </View>
 
         {/* Fields */}
@@ -195,6 +267,54 @@ const styles = StyleSheet.create({
   },
   ctaBtnActive: { backgroundColor: "#3B6B44" },
   ctaText: { fontSize: 16, fontWeight: "700", color: "#fff" },
+
+  // avater
+
+  avatarWrapper: {
+    alignItems: "center",
+    marginBottom: 32,
+  },
+  avatar: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    position: "relative",
+  },
+  avatarImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+  },
+  avatarPlaceholder: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: "#f0f7f2",
+
+    borderStyle: "solid",
+    borderColor: "#d1e8d4",
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarOverlay: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#3B6B44",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  avatarHint: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 8,
+  },
 });
 
 // import { Ionicons } from "@expo/vector-icons";

@@ -5,6 +5,8 @@ export type BusinessProfile = {
   email: string;
   address: string;
   about: string;
+  // image: string
+  imageUrl: string;
 };
 
 export type VendorType = "carwash" | "laundry";

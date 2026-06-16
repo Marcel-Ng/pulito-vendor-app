@@ -22,6 +22,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SearchableDropdown } from "../shared";
+import { CARWASH_ITEM_NAMES, LAUNDRY_ITEM_NAMES } from "./constants";
 import { Dropdown } from "./drop-down";
 
 export function ItemBottomSheet({
@@ -49,6 +51,14 @@ export function ItemBottomSheet({
   const [category, setCategory] = useState("");
   const [name, setName] = useState("");
   const [price, setPrice] = useState<number>(0);
+
+  const itemOptions =
+    vendorType === "carwash" ? CARWASH_ITEM_NAMES : LAUNDRY_ITEM_NAMES;
+
+  // reset name when category changes
+  useEffect(() => {
+    setName("");
+  }, [category]);
 
   useEffect(() => {
     if (visible) {
@@ -105,12 +115,11 @@ export function ItemBottomSheet({
               />
 
               <Text style={[styles.label, { marginTop: 20 }]}>Item Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Item Name"
-                placeholderTextColor="#AAAAAA"
+              <SearchableDropdown
                 value={name}
-                onChangeText={setName}
+                placeholder="Search item..."
+                options={itemOptions}
+                onSelect={setName}
               />
 
               <Text style={[styles.label, { marginTop: 20 }]}>Item Amount</Text>
