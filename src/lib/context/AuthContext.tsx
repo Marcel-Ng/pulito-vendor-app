@@ -87,7 +87,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
     router.replace("/auth/login");
   };
 
-  // auth-context.tsx
   const deleteAccount = async () => {
     await authService.deleteAccount();
     await SecureStore.deleteItemAsync("user_token");
