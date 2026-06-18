@@ -6,6 +6,8 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -119,95 +121,106 @@ export default function BusinessProfileScreen() {
   }, [activeVendor?.profile]);
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backBtn}
-          >
-            <Ionicons name="arrow-back" size={22} color="#111" />
-          </TouchableOpacity>
-          <Text style={styles.title}>Business Profile</Text>
-        </View>
-
-        {/* Avatar */}
-        <View style={styles.avatarWrapper}>
-          <TouchableOpacity onPress={handlePickImage} disabled={uploadingImage}>
-            <View style={styles.avatar}>
-              {imageUri ? (
-                <Image source={{ uri: imageUri }} style={styles.avatarImage} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <Ionicons
-                    name="storefront-outline"
-                    size={36}
-                    color="#3B6B44"
-                  />
-                </View>
-              )}
-
-              {/* Overlay */}
-              <View style={styles.avatarOverlay}>
-                {uploadingImage ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Ionicons name="camera" size={18} color="#fff" />
-                )}
-              </View>
-            </View>
-          </TouchableOpacity>
-          <Text style={styles.avatarHint}>Tap to update photo</Text>
-        </View>
-
-        {/* Fields */}
-        {fields.map(({ key, label, placeholder, multiline }) => (
-          <View key={key} style={styles.fieldGroup}>
-            <Text style={styles.label}>{label}</Text>
-            <TextInput
-              style={[
-                styles.input,
-                multiline && styles.inputMultiline,
-                isDirty && styles.inputDirty,
-              ]}
-              value={form[key]}
-              onChangeText={(text) => handleChange(key, text)}
-              placeholder={placeholder}
-              placeholderTextColor="#bbb"
-              multiline={multiline}
-            />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={styles.backBtn}
+            >
+              <Ionicons name="arrow-back" size={22} color="#111" />
+            </TouchableOpacity>
+            <Text style={styles.title}>Business Profiles</Text>
           </View>
-        ))}
 
-        <View style={{ height: 100 }} />
-      </ScrollView>
+          {/* Avatar */}
+          <View style={styles.avatarWrapper}>
+            <TouchableOpacity
+              onPress={handlePickImage}
+              disabled={uploadingImage}
+            >
+              <View style={styles.avatar}>
+                {imageUri ? (
+                  <Image
+                    source={{ uri: imageUri }}
+                    style={styles.avatarImage}
+                  />
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    <Ionicons
+                      name="storefront-outline"
+                      size={36}
+                      color="#3B6B44"
+                    />
+                  </View>
+                )}
 
-      {/* Floating CTA */}
-      {(isDirty || savedOnce) && (
-        <View style={styles.ctaContainer}>
-          <TouchableOpacity
-            style={[styles.ctaBtn, isDirty && styles.ctaBtnActive]}
-            onPress={handleSave}
-            disabled={!isDirty || saving}
-          >
-            {saving ? (
-              <ActivityIndicator color="#fff" />
-            ) : savedOnce && !isDirty ? (
-              <>
-                <Ionicons name="checkmark" size={18} color="#fff" />
-                <Text style={styles.ctaText}>Saved</Text>
-              </>
-            ) : (
-              <Text style={styles.ctaText}>Save Changes</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
+                {/* Overlay */}
+                <View style={styles.avatarOverlay}>
+                  {uploadingImage ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Ionicons name="camera" size={18} color="#fff" />
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+            <Text style={styles.avatarHint}>Tap to update photo</Text>
+          </View>
+
+          {/* Fields */}
+          {fields.map(({ key, label, placeholder, multiline }) => (
+            <View key={key} style={styles.fieldGroup}>
+              <Text style={styles.label}>{label}</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  multiline && styles.inputMultiline,
+                  isDirty && styles.inputDirty,
+                ]}
+                value={form[key]}
+                onChangeText={(text) => handleChange(key, text)}
+                placeholder={placeholder}
+                placeholderTextColor="#bbb"
+                multiline={multiline}
+              />
+            </View>
+          ))}
+
+          <View style={{ height: 100 }} />
+        </ScrollView>
+
+        {/* Floating CTA */}
+        {(isDirty || savedOnce) && (
+          <View style={styles.ctaContainer}>
+            <TouchableOpacity
+              style={[styles.ctaBtn, isDirty && styles.ctaBtnActive]}
+              onPress={handleSave}
+              disabled={!isDirty || saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : savedOnce && !isDirty ? (
+                <>
+                  <Ionicons name="checkmark" size={18} color="#fff" />
+                  <Text style={styles.ctaText}>Saved</Text>
+                </>
+              ) : (
+                <Text style={styles.ctaText}>Save Changes</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -245,11 +258,18 @@ const styles = StyleSheet.create({
   },
 
   // Floating CTA
+  // ctaContainer: {
+  //   position: "absolute",
+  //   bottom: 0,
+  //   left: 0,
+  //   right: 0,
+  //   padding: 20,
+  //   paddingBottom: 36,
+  //   backgroundColor: "#fff",
+  //   borderTopWidth: 1,
+  //   borderTopColor: "#f0f0f0",
+  // },
   ctaContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     padding: 20,
     paddingBottom: 36,
     backgroundColor: "#fff",

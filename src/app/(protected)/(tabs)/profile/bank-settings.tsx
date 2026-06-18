@@ -204,7 +204,7 @@ export default function BankSettingsScreen() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ width: "100%" }}
+          style={{ flex: 1, width: "100%" }}
         >
           <TouchableOpacity
             style={styles.modalOverlay}
@@ -236,18 +236,38 @@ export default function BankSettingsScreen() {
               >
                 <TextInput
                   value={bankSearcQuery}
+                  // onChangeText={(text) => {
+                  //   setBankSearchQuery(text.trim());
+                  //   if (bankSearcQuery === "") {
+                  //     setBankSearch([]);
+                  //     return;
+                  //   }
+                  //   const bs = BANKS.filter((b) =>
+                  //     b.name
+                  //       .toLocaleLowerCase()
+                  //       .includes(bankSearcQuery.toLocaleLowerCase()),
+                  //   );
+                  //   setBankSearch(bs);
+                  // }}
                   onChangeText={(text) => {
-                    setBankSearchQuery(text.trim());
-                    if (bankSearcQuery === "") {
+                    const trimmed = text.trim();
+                    setBankSearchQuery(trimmed);
+
+                    if (!trimmed) {
                       setBankSearch([]);
                       return;
                     }
-                    const bs = BANKS.filter((b) =>
-                      b.name
-                        .toLocaleLowerCase()
-                        .includes(bankSearcQuery.toLocaleLowerCase()),
+
+                    const lower = trimmed.toLowerCase();
+                    const filtered = BANKS.filter((b) =>
+                      b.name.toLowerCase().includes(lower),
                     );
-                    setBankSearch(bs);
+
+                    // ✅ Deduplicate by code in case BANKS has repeated entries
+                    const unique = [
+                      ...new Map(filtered.map((b) => [b.code, b])).values(),
+                    ];
+                    setBankSearch(unique);
                   }}
                   placeholder={selectedBank || "Bank name"}
                   style={[styles.dropdownText]}
